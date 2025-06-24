@@ -12,7 +12,8 @@ const cors = require('cors');
 const { logger } = require('./logger');
 const crypto = require('crypto');
 
-const ipaddress = process.env.AZURE_NODEJS_IP || 'localhost';
+const ipaddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
+const port = process.env.OPENSHIFT_NODEJS_PORT || 8000;
 
 app.use(compression());
 app.use(cookieParser());
@@ -78,9 +79,6 @@ const teacherRouter = express.Router();
 
 app.use('/api', router);
 routes(router);
-
-// Specify the port to listen on
-const port = 5000;
 
 // Start the server
 app.listen(port, ipaddress, () => {

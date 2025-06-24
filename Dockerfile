@@ -1,31 +1,19 @@
-# Use the Node.js Alpine image from Docker Hub
-FROM node:alpine
+FROM node:22-alpine
+RUN apk update && \
+    apk add --no-cache tzdata
+RUN adduser node root
+COPY . /home/node/app
+RUN chmod -R 755 /home/node/app
+RUN chown -R node:node /home/node/app
 
-# Add curl
-RUN apk --no-cache add curl
+WORKDIR /home/node/app
 
-# Create a new user and group
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Remove devDependencies to reduce image size
+RUN npm prune --production && \
+    npm cache clean --force
 
-# Set the working directory
-WORKDIR /usr/src/app
+# EXPOSE PORT 8080
+EXPOSE 8080
 
-# Install app dependencies
-# Use wildcard to ensure both package.json AND package-lock.json are considered
-COPY package*.json ./
-RUN NODE_ENV=production npm install --ignore-scripts
-
-# Bundle app source
-COPY . .
-
-# Change ownership of the app directory to the new user
-RUN chown -R appuser:appgroup /usr/src/app
-
-# Switch to the new user
-USER appuser
-
-# Your app runs on port 5000
-EXPOSE 5000
-
-# Start the application
-CMD ["npm", "start"]
+# START APPLICATION
+CMD [ "npm", "start" ]
