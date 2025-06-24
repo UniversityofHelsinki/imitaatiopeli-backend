@@ -74,8 +74,6 @@ if (process.env.NODE_ENV === 'production') {
 security.shibbolethAuthentication(app, passport);
 
 const router = express.Router();
-const studentRouter = express.Router();
-const teacherRouter = express.Router();
 
 app.use('/api', router);
 routes(router);

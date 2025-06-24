@@ -1,27 +1,9 @@
 const ReverseProxyStrategy = require('passport-reverseproxy');
 const ipaddr = require('ipaddr.js');
-const utf8 = require('utf8');
 const crypto = require('crypto');
+const { AUTHENTICATION_STRATEGY } = require('./utils/constants');
 
 const SECRET_KEY = process.env.URL_SIGNER_KEY;
-
-const concatenateArray = (data) => Array.prototype.concat([], data);
-const decodeUser = (user) => {
-    const eppn = utf8.decode(user.eppn);
-    const eduPersonAffiliation = concatenateArray(
-        utf8.decode(user.eduPersonAffiliation).split(';'),
-    );
-    const hyGroupCn = concatenateArray(utf8.decode(user.hyGroupCn).split(';'));
-    const preferredLanguage = utf8.decode(user.preferredLanguage);
-    const displayName = utf8.decode(user.displayName);
-    return {
-        eppn: eppn,
-        eduPersonAffiliation: eduPersonAffiliation,
-        hyGroupCn: hyGroupCn,
-        preferredLanguage: preferredLanguage,
-        displayName: displayName,
-    };
-};
 
 /**
  * Contains the IP address of the local host.
@@ -50,7 +32,6 @@ const shibbolethAuthentication = (app, passport) => {
         new ReverseProxyStrategy({
             headers: {
                 eppn: { alias: 'eppn', required: true },
-                eduPersonAffiliation: { alias: 'eduPersonAffiliation', required: false },
                 preferredlanguage: { alias: 'preferredLanguage', required: false },
                 hyGroupCn: { alias: 'hyGroupCn', required: false },
                 displayName: { alias: 'displayName', required: false },
@@ -58,17 +39,14 @@ const shibbolethAuthentication = (app, passport) => {
             whitelist: localhostIP,
         }),
     );
-
     app.use(passport.initialize());
 
-    app.use((req, res, next) => {
-        passport.authenticate('reverseproxy', { session: false }, (err, user, info) => {
-            if (err || !user) {
-                return res.status(401).send('Not Authorized');
-            }
-            req.user = decodeUser(user);
+    app.use(function (req, res, next) {
+        if (req.path === '/public') {
             next();
-        })(req, res, next);
+        } else {
+            passport.authenticate(AUTHENTICATION_STRATEGY, { session: false })(req, res, next);
+        }
     });
 };
 

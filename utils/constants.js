@@ -1,0 +1,3 @@
+const AUTHENTICATION_STRATEGY = 'reverseproxy';
+
+export { AUTHENTICATION_STRATEGY };
