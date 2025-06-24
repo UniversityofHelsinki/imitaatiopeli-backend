@@ -5,6 +5,7 @@ stages:
     - test
     - dependency-track-generate
     - dependency-track-submit
+    - deploy
 
 variables:
     npm_config_cache: '$CI_PROJECT_DIR/.npm'
@@ -71,3 +72,41 @@ submit-sbom:
         - apk add --no-cache curl
     script:
         - "curl -X POST ${DTRACK_API_URL} -H 'Content-Type: multipart/form-data' -H 'X-Api-Key: '${DTRACK_API_KEY} -F 'projectName='${PROJECT_NAME} -F 'autoCreate=true' -F 'projectVersion='${PROJECT_VERSION} -F 'bom=@sbom.xml'"
+
+deploy_dev:
+    stage: deploy
+    tags:
+        - ohtu-build-4
+    environment:
+        name: development
+    only:
+        - main
+    except:
+        # Skip deploy when scheduled npm audit and outdated scans are executed.
+        - schedules
+    script:
+        # set home path for openshift 1001 user
+        - export HOME=/home/1001
+        # before any action, I connect to the OpenShift server with the appropriate credentials
+        - oc login https://$OPENSHIFT_ADDR_TEST:$OPENSHIFT_PORT --token=$OPENSHIFT_TOKEN_TEST
+        - oc project imitaatiopeli
+        # create application if it does not exist
+        - |
+            if oc get deploy/imitaatiopeli-backend-dev; then 
+              echo "The application already exists."
+            else 
+              oc new-app . --name=imitaatiopeli-backend-dev --strategy=docker
+              echo "The application has been created."
+            fi
+        # add secrets here
+        # list environment variables here
+        - oc set env deploy/imitaatiopeli-backend-dev OPENSHIFT_NODEJS_IP=$OPENSHIFT_NODEJS_IP
+        - oc set env deploy/imitaatiopeli-backend-dev OPENSHIFT_NODEJS_PORT=$OPENSHIFT_NODEJS_PORT
+        - oc set env deploy/imitaatiopeli-backend-dev DB_HOST=$DB_HOST_DEV
+        - oc set env deploy/imitaatiopeli-backend-dev AZURE_SERVICE_HOST=$AZURE_SERVICE_HOST_DEV
+        - oc set env deploy/imitaatiopeli-backend-dev TZ="Europe/Helsinki"
+        # start build process in OpenShift
+        - oc start-build imitaatiopeli-backend-dev --from-dir=. --follow
+        # patch openshift buildConfig file
+        - oc patch bc/imitaatiopeli-backend-dev --patch '{"spec":{"successfulBuildsHistoryLimit":1}}'
+        - oc patch bc/imitaatiopeli-backend-dev --patch '{"spec":{"failedBuildsHistoryLimit":1}}'
