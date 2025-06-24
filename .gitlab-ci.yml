@@ -3,6 +3,8 @@ image: quay.io/tike/alpine-oc-node
 stages:
     - setup
     - test
+    - dependency-track-generate
+    - dependency-track-submit
 
 variables:
     npm_config_cache: '$CI_PROJECT_DIR/.npm'
@@ -40,3 +42,32 @@ test:
         - ohtu-build-4
     script:
         - npm test
+
+generate-sbom:
+    stage: dependency-track-generate
+    image: node:22-alpine
+    only:
+        - schedules
+    tags:
+        - ohtu-build-4
+    script:
+        - npm ci
+        - npx @cyclonedx/cyclonedx-npm --output-file sbom.xml
+    artifacts:
+        expire_in: 1h
+        paths:
+            - sbom.xml
+
+submit-sbom:
+    image: alpine:latest
+    stage: dependency-track-submit
+    only:
+        - schedules
+    tags:
+        - ohtu-build-4
+    dependencies:
+        - generate-sbom
+    before_script:
+        - apk add --no-cache curl
+    script:
+        - "curl -X POST ${DTRACK_API_URL} -H 'Content-Type: multipart/form-data' -H 'X-Api-Key: '${DTRACK_API_KEY} -F 'projectName='${PROJECT_NAME} -F 'autoCreate=true' -F 'projectVersion='${PROJECT_VERSION} -F 'bom=@sbom.xml'"
