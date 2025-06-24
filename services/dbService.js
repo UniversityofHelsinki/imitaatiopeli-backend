@@ -19,9 +19,25 @@ const dbClient = async (path, options = { method: 'GET' }) => {
     }
 };
 
-exports.dbClient = dbClient;
+exports.savePlayer = async (req, res) => {
+    const url = `/api/savePlayer`;
+    return await dbClient(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(req.body),
+    });
+};
+
+exports.getPlayerById = async (playerId) => {
+    const url = `/api/getplayerById/${playerId}`;
+    return await dbClient(url);
+};
 
 exports.getHelloFromBackend = async () => {
     const url = `/api/hello`;
     return await dbClient(url);
 };
+
+exports.dbClient = dbClient;
