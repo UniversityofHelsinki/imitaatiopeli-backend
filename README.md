@@ -20,6 +20,7 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 ```
 DB_HOST=http://localhost:8080
 AZURE_SERVICE_HOST=http://localhost:5000
+ALLOWED_ORIGIN=http://localhost:5173
 ```
 
 ## Integrate with your tools
