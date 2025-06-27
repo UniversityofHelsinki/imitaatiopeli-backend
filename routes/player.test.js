@@ -1,5 +1,5 @@
 const dbService = require('../services/dbService');
-const { savePlayer } = require('./dbApi');
+const { savePlayer } = require('../api/dbApi');
 const messageKeys = require('../utils/message-keys');
 
 jest.mock('../services/dbService');

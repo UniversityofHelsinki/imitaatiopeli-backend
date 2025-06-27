@@ -3,7 +3,6 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
-const routes = require('./api/routes');
 const compression = require('compression');
 const security = require('./security');
 const passport = require('passport');
@@ -11,6 +10,8 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const { logger } = require('./logger');
 const crypto = require('crypto');
+const { admin } = require('./routes/admin');
+const { player } = require('./routes/player');
 
 const ipaddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 const port = process.env.OPENSHIFT_NODEJS_PORT || 8000;
@@ -73,10 +74,13 @@ if (process.env.NODE_ENV === 'production') {
 
 security.shibbolethAuthentication(app, passport);
 
-const router = express.Router();
+const adminRouter = express.Router();
+const playerRouter = express.Router();
 
-app.use('/api', router);
-routes(router);
+app.use('/api', adminRouter);
+admin(adminRouter);
+app.use('/public', playerRouter);
+player(playerRouter);
 
 // Start the server
 app.listen(port, ipaddress, () => {
