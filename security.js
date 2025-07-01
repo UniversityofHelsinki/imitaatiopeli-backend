@@ -2,7 +2,6 @@ const ReverseProxyStrategy = require('passport-reverseproxy');
 const ipaddr = require('ipaddr.js');
 const crypto = require('crypto');
 const { AUTHENTICATION_STRATEGY } = require('./utils/constants');
-
 const SECRET_KEY = process.env.URL_SIGNER_KEY;
 
 /**
@@ -42,11 +41,7 @@ const shibbolethAuthentication = (app, passport) => {
     app.use(passport.initialize());
 
     app.use(function (req, res, next) {
-        if (req.path === '/public') {
-            next();
-        } else {
-            passport.authenticate(AUTHENTICATION_STRATEGY, { session: false })(req, res, next);
-        }
+        passport.authenticate(AUTHENTICATION_STRATEGY, { session: false })(req, res, next);
     });
 };
 

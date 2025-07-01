@@ -72,6 +72,8 @@ if (process.env.NODE_ENV === 'production') {
     app.set('trust proxy', true);
 }
 
+app.use('/public', express.static('public'));
+
 security.shibbolethAuthentication(app, passport);
 
 const adminRouter = express.Router();
