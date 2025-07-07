@@ -131,3 +131,41 @@ deploy_dev:
         # patch openshift buildConfig file
         - oc patch bc/imitaatiopeli-backend-dev --patch '{"spec":{"successfulBuildsHistoryLimit":1}}'
         - oc patch bc/imitaatiopeli-backend-dev --patch '{"spec":{"failedBuildsHistoryLimit":1}}'
+
+deploy_test:
+    stage: deploy
+    tags:
+        - ohtu-build-4
+    environment:
+        name: test
+    only:
+        - test
+    except:
+        # Skip deploy when scheduled npm audit and outdated scans are executed.
+        - schedules
+    script:
+        # set home path for openshift 1001 user
+        - export HOME=/home/1001
+        # before any action, I connect to the OpenShift server with the appropriate credentials
+        - oc login https://$OPENSHIFT_ADDR_TEST:$OPENSHIFT_PORT --token=$OPENSHIFT_TOKEN_TEST
+        - oc project imitaatiopeli
+        # create application if it does not exist
+        - |
+            if oc get deploy/imitaatiopeli-backend-test; then 
+              echo "The application already exists."
+            else 
+              oc new-app . --name=imitaatiopeli-backend-test --strategy=docker
+              echo "The application has been created."
+            fi
+        # add secrets here
+        # list environment variables here
+        - oc set env deploy/imitaatiopeli-backend-test OPENSHIFT_NODEJS_IP=$OPENSHIFT_NODEJS_IP
+        - oc set env deploy/imitaatiopeli-backend-test OPENSHIFT_NODEJS_PORT=$OPENSHIFT_NODEJS_PORT
+        - oc set env deploy/imitaatiopeli-backend-test DB_HOST=$DB_HOST_TEST
+        - oc set env deploy/imitaatiopeli-backend-test AZURE_SERVICE_HOST=$AZURE_SERVICE_HOST_TEST
+        - oc set env deploy/imitaatiopeli-backend-test TZ="Europe/Helsinki"
+        # start build process in OpenShift
+        - oc start-build imitaatiopeli-backend-test --from-dir=. --follow
+        # patch openshift buildConfig file
+        - oc patch bc/imitaatiopeli-backend-test --patch '{"spec":{"successfulBuildsHistoryLimit":1}}'
+        - oc patch bc/imitaatiopeli-backend-test --patch '{"spec":{"failedBuildsHistoryLimit":1}}'
