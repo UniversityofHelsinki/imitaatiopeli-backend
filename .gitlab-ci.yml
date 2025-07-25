@@ -121,6 +121,7 @@ deploy_dev:
             fi
         # add secrets here
         # list environment variables here
+        - oc set env deploy/imitaatiopeli-backend-dev ALLOWED_ORIGIN=$ALLOWED_ORIGIN
         - oc set env deploy/imitaatiopeli-backend-dev OPENSHIFT_NODEJS_IP=$OPENSHIFT_NODEJS_IP
         - oc set env deploy/imitaatiopeli-backend-dev OPENSHIFT_NODEJS_PORT=$OPENSHIFT_NODEJS_PORT
         - oc set env deploy/imitaatiopeli-backend-dev DB_HOST=$DB_HOST_DEV
@@ -159,6 +160,7 @@ deploy_test:
             fi
         # add secrets here
         # list environment variables here
+        - oc set env deploy/imitaatiopeli-backend-test ALLOWED_ORIGIN=$ALLOWED_ORIGIN
         - oc set env deploy/imitaatiopeli-backend-test OPENSHIFT_NODEJS_IP=$OPENSHIFT_NODEJS_IP
         - oc set env deploy/imitaatiopeli-backend-test OPENSHIFT_NODEJS_PORT=$OPENSHIFT_NODEJS_PORT
         - oc set env deploy/imitaatiopeli-backend-test DB_HOST=$DB_HOST_TEST
