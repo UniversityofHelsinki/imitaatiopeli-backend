@@ -1,7 +1,33 @@
 const dbApi = require('../api/dbApi');
 const userApi = require('../api/userApi');
+const { dbClient } = require('../services/dbService');
 exports.player = (router) => {
     router.get('/hello', dbApi.getHelloFromDb);
     router.get('/getPlayerById/:playerId', dbApi.getPlayerById);
     router.post('/savePlayer', dbApi.savePlayer);
+
+    router.get('/games/:code', async (req, res) => {
+        const { code } = req.params;
+        const response = await dbClient(`/api/game/code/${code}`);
+        if (response) {
+            res.json(response);
+        }
+        res.status(500).end();
+    });
+
+    router.post('/games/join', async (req, res) => {
+        const { body } = req;
+
+        const response = await dbClient(`/api/game/join`, {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (response) {
+            res.status(200).json(response);
+        }
+        res.status(500).end();
+    });
 };
