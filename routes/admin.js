@@ -26,6 +26,23 @@ exports.admin = (router) => {
         }
     });
 
+    router.delete('/game/deleteGame', async (req, res) => {
+        const { body } = req;
+
+        try {
+            const response = await dbClient('/api/game/deleteGame', {
+                method: 'DELETE',
+                body: JSON.stringify(body),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            return res.json(response);
+        } catch (error) {
+            return res.status(500).json(error.message);
+        }
+    });
+
     router.put('/game/edit', async (req, res) => {
         const { body } = req;
         try {
