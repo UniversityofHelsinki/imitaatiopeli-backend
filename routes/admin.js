@@ -1,5 +1,7 @@
 const userApi = require('../api/userApi');
 const { dbClient } = require('../services/dbService');
+const { azureClient } = require('../services/azureService');
+const azureApi = require('../api/azureApi');
 exports.admin = (router) => {
     router.get('/user', userApi.getLoggedUser);
 
@@ -92,4 +94,6 @@ exports.admin = (router) => {
             return res.status(500).json(error.message);
         }
     });
+
+    router.post('/testAIPrompt', azureApi.testAIPrompt);
 };
