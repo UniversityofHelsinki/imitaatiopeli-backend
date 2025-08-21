@@ -75,4 +75,27 @@ exports.admin = (router) => {
             return res.status(500).json(error.message);
         }
     });
+
+
+    router.get('/games/:id/lobby', async (req, res) => {
+        const { id } = req.params;
+
+        try {
+            const game = await dbClient(`/api/games/${id}/lobby`);
+            return res.json(game);
+        } catch (error) {
+            return res.status(500).json(error.message);
+        }
+    });
+
+    router.get('/games/:id/players', async (req, res) => {
+        const { id } = req.params;
+        try {
+            const players = await dbClient(`/api/games/${id}/players`);
+            res.json(players);
+        } catch (error) {
+            return res.status(500).json(error.message);
+        }
+    });
+
 };
