@@ -22,10 +22,10 @@ const azureClient = async (path, options = { method: 'GET' }) => {
 };
 
 exports.testAIPrompt = async (req) => {
-    const { prompt, question } = req.body;
+    const { prompt, question, temperature } = req.body;
 
     if (!prompt || !question) {
-        throw new Error('Both prompt and question are required');
+        throw new Error('Prompt, question and temperature are required');
     }
 
     const url = `/api/ask`;
@@ -34,6 +34,6 @@ exports.testAIPrompt = async (req) => {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question, prompt }),
+        body: JSON.stringify({ question, prompt, temperature }),
     });
 };
