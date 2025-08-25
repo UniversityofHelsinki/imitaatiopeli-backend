@@ -21,11 +21,28 @@ const azureClient = async (path, options = { method: 'GET' }) => {
     }
 };
 
+const isValidUrl = (url) => {
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 exports.testAIPrompt = async (req) => {
-    const { prompt, question, temperature } = req.body;
+    const { prompt, question, temperature, languageModelUrl } = req.body;
 
     if (!prompt || !question) {
         throw new Error('Prompt, question and temperature are required');
+    }
+
+    if (!languageModelUrl) {
+        throw new Error('Language model URL is required');
+    }
+
+    if (!isValidUrl(languageModelUrl)) {
+        throw new Error('Language model URL is invalid');
     }
 
     const url = `/api/ask`;
@@ -34,6 +51,6 @@ exports.testAIPrompt = async (req) => {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question, prompt, temperature }),
+        body: JSON.stringify({ question, prompt, temperature, languageModelUrl }),
     });
 };

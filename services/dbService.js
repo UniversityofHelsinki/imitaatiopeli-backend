@@ -40,4 +40,9 @@ exports.getHelloFromBackend = async () => {
     return await dbClient(url);
 };
 
+exports.getAllLanguageModels = async () => {
+    const url = `/api/languageModels`;
+    return await dbClient(url);
+};
+
 exports.dbClient = dbClient;
