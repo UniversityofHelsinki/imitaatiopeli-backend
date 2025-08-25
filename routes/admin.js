@@ -1,5 +1,7 @@
 const userApi = require('../api/userApi');
 const { dbClient } = require('../services/dbService');
+const { azureClient } = require('../services/azureService');
+const azureApi = require('../api/azureApi');
 exports.admin = (router) => {
     router.get('/user', userApi.getLoggedUser);
 
@@ -15,6 +17,23 @@ exports.admin = (router) => {
         try {
             const response = await dbClient('/api/game/create', {
                 method: 'POST',
+                body: JSON.stringify(body),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            return res.json(response);
+        } catch (error) {
+            return res.status(500).json(error.message);
+        }
+    });
+
+    router.delete('/game/deleteGame', async (req, res) => {
+        const { body } = req;
+
+        try {
+            const response = await dbClient('/api/game/deleteGame', {
+                method: 'DELETE',
                 body: JSON.stringify(body),
                 headers: {
                     'Content-Type': 'application/json',
@@ -98,4 +117,6 @@ exports.admin = (router) => {
         }
     });
 
+
+    router.post('/testAIPrompt', azureApi.testAIPrompt);
 };
