@@ -1,3 +1,4 @@
+const { getLanguageModelById } = require('./dbService');
 const azureServiceHost = process.env.AZURE_SERVICE_HOST;
 
 const azureClient = async (path, options = { method: 'GET' }) => {
@@ -21,29 +22,18 @@ const azureClient = async (path, options = { method: 'GET' }) => {
     }
 };
 
-const isValidUrl = (url) => {
-    try {
-        new URL(url);
-        return true;
-    } catch {
-        return false;
-    }
-};
-
 exports.testAIPrompt = async (req) => {
-    const { prompt, question, temperature, languageModelUrl } = req.body;
+    const { prompt, question, temperature, languageModelId } = req.body;
 
     if (!prompt || !question) {
         throw new Error('Prompt, question and temperature are required');
     }
 
-    if (!languageModelUrl) {
-        throw new Error('Language model URL is required');
+    if (!languageModelId) {
+        throw new Error('Language model is invalid');
     }
 
-    if (!isValidUrl(languageModelUrl)) {
-        throw new Error('Language model URL is invalid');
-    }
+    const { url: languageModelUrl } = await getLanguageModelById(languageModelId);
 
     const url = `/api/ask`;
     return await azureClient(url, {
