@@ -2,6 +2,7 @@ const userApi = require('../api/userApi');
 const { dbClient } = require('../services/dbService');
 const { azureClient } = require('../services/azureService');
 const azureApi = require('../api/azureApi');
+const dbApi = require('../api/dbApi');
 exports.admin = (router) => {
     router.get('/user', userApi.getLoggedUser);
 
@@ -96,4 +97,6 @@ exports.admin = (router) => {
     });
 
     router.post('/testAIPrompt', azureApi.testAIPrompt);
+
+    router.get('/languageModels', dbApi.getAllLanguageModels);
 };
