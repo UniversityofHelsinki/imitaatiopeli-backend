@@ -15,6 +15,12 @@ exports.player = (router) => {
         res.status(500).end();
     });
 
+    router.get('/game/:id', async (req, res) => {
+        const { id } = req.params;
+        const game = await dbClient(`/api/game/${id}`);
+        return res.json(game).end();
+    });
+
     router.post('/games/join', async (req, res) => {
         const { body } = req;
 
