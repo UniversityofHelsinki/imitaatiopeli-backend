@@ -1,6 +1,9 @@
 require('dotenv').config();
 const express = require('express');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 const app = express();
+const server = createServer(app);
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const compression = require('compression');
@@ -37,6 +40,13 @@ const corsOptions = {
 // Apply CORS middleware to the app
 app.use(cors(corsOptions));
 
+const io = new Server(server, {
+    cors: {
+        origin: allowedOrigin,
+        methods: ['GET', 'POST'],
+    },
+});
+
 app.use(
     helmet({
         contentSecurityPolicy: false, // Let nginx handle CSP
@@ -63,7 +73,25 @@ admin(adminRouter);
 app.use('/public', playerRouter);
 player(playerRouter);
 
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+    logger.info(`User connected: ${socket.id}`);
+
+    // Handle custom events here
+    socket.on('test-message', (data) => {
+        logger.info('Message received:', data);
+        // Echo the message back to all clients
+        io.emit('message', data);
+    });
+
+    socket.on('disconnect', () => {
+        logger.info(`User disconnected: ${socket.id}`);
+    });
+});
+
 // Start the server
-app.listen(port, ipaddress, () => {
-    logger.info(`Node.js HTTP server is running on port ${port} and ip address ${ipaddress}`);
+server.listen(port, ipaddress, () => {
+    logger.info(
+        `Node.js HTTP server with Socket.IO is running on port ${port} and ip address ${ipaddress}`,
+    );
 });
