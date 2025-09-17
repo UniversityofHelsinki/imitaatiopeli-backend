@@ -80,8 +80,7 @@ io.on('connection', (socket) => {
     // Handle custom events here
     socket.on('test-message', (data) => {
         logger.info('Message received:', data);
-        // Echo the message back to all clients
-        io.emit('message', data);
+        io.emit('message', { ...data, socketId: socket.id });
     });
 
     socket.on('disconnect', () => {
