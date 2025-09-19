@@ -96,7 +96,6 @@ exports.admin = (router) => {
         }
     });
 
-
     router.get('/games/:id/lobby', async (req, res) => {
         const { id } = req.params;
 
@@ -118,6 +117,15 @@ exports.admin = (router) => {
         }
     });
 
+    router.get('/games/:id/judgeplayerpairs', async (req, res) => {
+        const { id } = req.params;
+        try {
+            const players = await dbClient(`/api/games/${id}/judgeplayerpairs`);
+            res.json(players);
+        } catch (error) {
+            return res.status(500).json(error.message);
+        }
+    });
 
     router.post('/testAIPrompt', azureApi.testAIPrompt);
 
