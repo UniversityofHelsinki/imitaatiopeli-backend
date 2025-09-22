@@ -15,6 +15,7 @@ const { logger } = require('./logger');
 const crypto = require('crypto');
 const { admin } = require('./routes/admin');
 const { player } = require('./routes/player');
+const { handleConnection } = require('./services/socketHandlerService');
 
 const ipaddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 const port = process.env.OPENSHIFT_NODEJS_PORT || 8000;
@@ -74,19 +75,7 @@ app.use('/public', playerRouter);
 player(playerRouter);
 
 // Socket.IO connection handling
-io.on('connection', (socket) => {
-    logger.info(`User connected: ${socket.id}`);
-
-    // Handle custom events here
-    socket.on('test-message', (data) => {
-        logger.info('Message received:', data);
-        io.emit('message', { ...data, socketId: socket.id });
-    });
-
-    socket.on('disconnect', () => {
-        logger.info(`User disconnected: ${socket.id}`);
-    });
-});
+io.on('connection', handleConnection(io));
 
 // Start the server
 server.listen(port, ipaddress, () => {
