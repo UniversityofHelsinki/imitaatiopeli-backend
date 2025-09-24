@@ -21,6 +21,16 @@ exports.player = (router) => {
         return res.json(game).end();
     });
 
+    router.get('/games/:id/players', async (req, res) => {
+        const { id } = req.params;
+        try {
+            const players = await dbClient(`/api/games/${id}/players`);
+            res.json(players);
+        } catch (error) {
+            return res.status(500).json(error.message);
+        }
+    });
+
     router.post('/games/join', async (req, res) => {
         const { body } = req;
 
