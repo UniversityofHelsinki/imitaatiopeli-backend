@@ -41,6 +41,50 @@ const handleConnection = (io) => {
             console.log('connectedUsers', connectedUsers);
         });
 
+        socket.on('start-game', (data) => {
+            const { gameId } = data;
+            logger.info(`Game start requested for gameId: ${gameId} by socket: ${socket.id}`);
+
+            try {
+                // Get all sockets connected to this game
+                const gameSockets = getGamePlayerSockets(gameId);
+
+                if (gameSockets.length === 0) {
+                    logger.warn(`No players found for game ${gameId}`);
+                    socket.emit('start-game-error', {
+                        gameId: gameId,
+                        error: 'No players found for this game',
+                    });
+                    return;
+                }
+
+                // Broadcast to all players in the game
+                gameSockets.forEach((player) => {
+                    io.to(player.socketId).emit('game-started', {
+                        gameId: gameId,
+                        message: 'Game has started!',
+                        startedBy: socket.id,
+                    });
+                });
+
+                // Send confirmation back to the admin/starter
+                socket.emit('start-game-success', {
+                    gameId: gameId,
+                    playersNotified: gameSockets.length,
+                    message: 'Game started successfully',
+                    timestamp: new Date().toISOString(),
+                });
+
+                logger.info(`Game ${gameId} started. Notified ${gameSockets.length} players.`);
+            } catch (error) {
+                logger.error(`Error starting game ${gameId}:`, error);
+                socket.emit('start-game-error', {
+                    gameId: gameId,
+                    error: 'Failed to start game',
+                });
+            }
+        });
+
         socket.on('disconnect', () => {
             logger.info(`User disconnected: ${socket.id}`);
 
@@ -62,7 +106,25 @@ const handleConnection = (io) => {
     };
 };
 
-// Export functions to access connectedUsers
+const getGamePlayerSockets = (gameId) => {
+    const gameSockets = [];
+
+    for (const [userId, userData] of connectedUsers.entries()) {
+        for (const socketData of userData.sockets) {
+            if (socketData.gameId === gameId) {
+                gameSockets.push({
+                    userId: userId,
+                    nickname: userData.nickname,
+                    socketId: socketData.socketId,
+                    gameId: socketData.gameId,
+                });
+            }
+        }
+    }
+
+    return gameSockets;
+};
+
 const getUserSockets = (userId) => {
     const userData = connectedUsers.get(userId);
     return userData ? Array.from(userData.sockets) : [];
