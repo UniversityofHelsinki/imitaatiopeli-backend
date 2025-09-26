@@ -67,14 +67,6 @@ const handleConnection = (io) => {
                     });
                 });
 
-                // Send confirmation back to the admin/starter
-                socket.emit('start-game-success', {
-                    gameId: gameId,
-                    playersNotified: gameSockets.length,
-                    message: 'Game started successfully',
-                    timestamp: new Date().toISOString(),
-                });
-
                 logger.info(`Game ${gameId} started. Notified ${gameSockets.length} players.`);
             } catch (error) {
                 logger.error(`Error starting game ${gameId}:`, error);
@@ -111,7 +103,7 @@ const getGamePlayerSockets = (gameId) => {
 
     for (const [userId, userData] of connectedUsers.entries()) {
         for (const socketData of userData.sockets) {
-            if (socketData.gameId === gameId) {
+            if (socketData.gameId === parseInt(gameId, 10)) {
                 gameSockets.push({
                     userId: userId,
                     nickname: userData.nickname,
