@@ -15,7 +15,7 @@ const { logger } = require('./logger');
 const crypto = require('crypto');
 const { admin } = require('./routes/admin');
 const { player } = require('./routes/player');
-const { handleConnection } = require('./services/socketHandlerService');
+const { handleConnection } = require('./socket/socketHandler');
 
 const ipaddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 const port = process.env.OPENSHIFT_NODEJS_PORT || 8000;
