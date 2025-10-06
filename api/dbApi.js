@@ -33,6 +33,15 @@ exports.getPlayerById = async (req, res) => {
     }
 };
 
+exports.getJudgeById = async (playerId, gameId) => {
+    try {
+        const response = await dbService.getJudgeById(playerId, gameId);
+        return response;
+    } catch (err) {
+        return null;
+    }
+};
+
 exports.savePlayer = async (req, res) => {
     try {
         const response = await dbService.savePlayer(req, res);

@@ -35,6 +35,11 @@ exports.getPlayerById = async (playerId) => {
     return await dbClient(url);
 };
 
+exports.getJudgeById = async (playerId, gameId) => {
+    const url = `/api/getJudgeById/${playerId}/${gameId}`;
+    return await dbClient(url);
+};
+
 exports.getHelloFromBackend = async () => {
     const url = `/api/hello`;
     return await dbClient(url);
