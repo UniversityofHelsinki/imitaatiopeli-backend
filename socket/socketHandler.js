@@ -4,6 +4,7 @@ const gameHandler = require('./handlers/socketGameHandler');
 const socketUserService = require('../socket/services/socketUserService');
 const { sendAnswersToJudge } = require('./handlers/socketGameHandler');
 const dbApi = require('../api/dbApi');
+const { dbClient } = require('../services/dbService');
 
 const handleConnection = (io) => {
     return (socket) => {
@@ -11,8 +12,19 @@ const handleConnection = (io) => {
 
         socket.on('send-answer', async (data) => {
             try {
-                const { gameId, playerId, answer } = data;
+                const { questionId, gameId, playerId, answer } = data;
+
                 logger.info(`Received answer from player ${playerId} for game ${gameId}`);
+
+                // Insert user answer into database
+                const result = await dbClient(`/api/game/answer`, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
                 // Fetch judgeId from database
                 const { judge_id } = await dbApi.getJudgeById(playerId, gameId);
                 if (!judge_id) {
