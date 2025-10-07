@@ -1,53 +1,16 @@
 const { logger } = require('../logger');
 const connectionHandler = require('./handlers/socketConnectionHandler');
 const gameHandler = require('./handlers/socketGameHandler');
+const socketAnswerService = require('./services/socketAnswerService');
 const socketUserService = require('../socket/services/socketUserService');
-const { sendAnswersToJudge } = require('./handlers/socketGameHandler');
-const dbApi = require('../api/dbApi');
-const { dbClient } = require('../services/dbService');
 
 const handleConnection = (io) => {
     return (socket) => {
         logger.info(`User connected: ${socket.id}`);
 
+        // Register the event handler
         socket.on('send-answer', async (data) => {
-            try {
-                const { questionId, gameId, playerId, answer } = data;
-
-                logger.info(`Received answer from player ${playerId} for game ${gameId}`);
-
-                // Insert user answer into database
-                const result = await dbClient(`/api/game/answer`, {
-                    method: 'POST',
-                    body: JSON.stringify(data),
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                // Fetch judgeId from database
-                const { judge_id } = await dbApi.getJudgeById(playerId, gameId);
-                if (!judge_id) {
-                    logger.warn(`No judge found for player ${playerId} in game ${gameId}`);
-                    socket.emit('send-answer-error', {
-                        error: 'Judge not found for this game',
-                    });
-                    return;
-                }
-
-                logger.info(`Sending answer to judge ${judge_id} for game ${gameId}`);
-                sendAnswersToJudge(io, gameId, judge_id.toString(), answer);
-
-                socket.emit('send-answer-success', {
-                    message: 'Answer sent successfully',
-                    gameId,
-                });
-            } catch (error) {
-                logger.error(`Error handling send-answer: ${error.message}`);
-                socket.emit('send-answer-error', {
-                    error: 'Failed to send answer',
-                });
-            }
+            await socketAnswerService.handleSendAnswer(socket, io, data);
         });
 
         socket.on('join-game', (data) => {
