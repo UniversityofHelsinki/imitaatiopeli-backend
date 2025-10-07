@@ -4,6 +4,15 @@ const { sendAnswersToJudge } = require('../handlers/socketGameHandler');
 const azureService = require('../../services/azureService');
 const { getJudgeById } = require('../../api/dbApi');
 
+const getAIPlayer = async () => {
+    try {
+        return await dbClient('/api/aiPlayer');
+    } catch (error) {
+        logger.error('Failed to fetch AI player:', error);
+        throw new Error('Failed to retrieve AI player');
+    }
+};
+
 const getAIAnswer = async (gameConfiguration, playerAnswer, question) => {
     try {
         const { configuration, languageModel } = gameConfiguration;
@@ -12,8 +21,12 @@ const getAIAnswer = async (gameConfiguration, playerAnswer, question) => {
             model_temperature: temperature,
             language_model: languageModelId,
         } = configuration;
+
+        const modifiedPrompt =
+            prompt +
+            ` , the answer should be around ${question.length} characters and never exceed 255 characters`;
         return await azureService.getAIAnswer(
-            prompt,
+            modifiedPrompt,
             temperature,
             languageModelId,
             playerAnswer,
@@ -58,7 +71,7 @@ const handleSendAnswer = async (socket, io, data) => {
 
     try {
         // Save answer to database
-        //await saveAnswerToDatabase(data);
+        await saveAnswerToDatabase(data);
         logger.info(`Answer saved to database for player ${playerId}`);
 
         // Get question from database
@@ -73,7 +86,20 @@ const handleSendAnswer = async (socket, io, data) => {
 
         const aIAnswer = await getAIAnswer(gameConfiguration, answer, question);
 
+        // Get AI Player from database
+
+        const aiPlayer = await getAIPlayer();
+
         // Save AI answer to database
+
+        const aiData = {
+            questionId,
+            gameId,
+            playerId: aiPlayer.player_id,
+            answer: aIAnswer.answer,
+        };
+
+        await saveAnswerToDatabase(aiData);
 
         // update answer to contain ai answer
 
