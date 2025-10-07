@@ -1,7 +1,39 @@
 const { logger } = require('../../logger');
 const { dbClient } = require('../../services/dbService');
 const { sendAnswersToJudge } = require('../handlers/socketGameHandler');
+const azureService = require('../../services/azureService');
 const { getJudgeById } = require('../../api/dbApi');
+
+const getAIAnswer = async (gameConfiguration, playerAnswer, question) => {
+    try {
+        const { configuration, languageModel } = gameConfiguration;
+        const {
+            ai_prompt: prompt,
+            model_temperature: temperature,
+            language_model: languageModelId,
+        } = configuration;
+        return await azureService.getAIAnswer(
+            prompt,
+            temperature,
+            languageModelId,
+            playerAnswer,
+            question,
+            languageModel.url,
+        );
+    } catch (error) {
+        logger.error('Failed to get AI answer:', error);
+        throw new Error('Failed to generate AI answer');
+    }
+};
+
+const getPlayerQuestionByQuestionIdAndGameId = async (questionId, gameId) => {
+    try {
+        return await dbClient(`/api/game/question/${questionId}/${gameId}`);
+    } catch (error) {
+        logger.error(`Failed to fetch question with ID ${questionId}:`, error);
+        throw new Error('Failed to retrieve question from database');
+    }
+};
 
 /**
  * Handle answer submission from player
@@ -26,8 +58,24 @@ const handleSendAnswer = async (socket, io, data) => {
 
     try {
         // Save answer to database
-        await saveAnswerToDatabase(data);
+        //await saveAnswerToDatabase(data);
         logger.info(`Answer saved to database for player ${playerId}`);
+
+        // Get question from database
+        const question = await getPlayerQuestionByQuestionIdAndGameId(questionId, gameId);
+
+        // Get Game Configuration from Database
+        const gameConfiguration = await getGameConfigurationById(gameId);
+
+        console.log(gameConfiguration);
+
+        // Get AI answer
+
+        const aIAnswer = await getAIAnswer(gameConfiguration, answer, question);
+
+        // Save AI answer to database
+
+        // update answer to contain ai answer
 
         // Get and validate judge
         const judgeId = await getGameJudge(playerId, gameId);
@@ -36,7 +84,7 @@ const handleSendAnswer = async (socket, io, data) => {
             return;
         }
 
-        // Send answer to judge
+        // Send answers to judge
         await notifyJudge(io, gameId, judgeId, answer);
         logger.info(`Answer forwarded to judge ${judgeId} for game ${gameId}`);
 
@@ -81,6 +129,16 @@ const saveAnswerToDatabase = async (data) => {
     } catch (error) {
         logger.error('Database save failed:', error);
         throw new Error('Failed to save answer to database');
+    }
+};
+
+const getGameConfigurationById = async (gameId) => {
+    try {
+        const response = await dbClient(`/api/game/${gameId}`);
+        return response;
+    } catch (error) {
+        logger.error(`Failed to fetch game configuration for game ${gameId}:`, error);
+        throw new Error('Failed to retrieve game configuration');
     }
 };
 
