@@ -46,4 +46,20 @@ exports.player = (router) => {
         }
         res.status(500).end();
     });
+
+    router.post('/games/answer', async (req, res) => {
+        const { body } = req;
+
+        const response = await dbClient(`/api/game/answer`, {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (response) {
+            res.status(200).json(response);
+        }
+        res.status(500).end();
+    });
 };
