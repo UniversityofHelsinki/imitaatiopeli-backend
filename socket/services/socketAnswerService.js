@@ -79,28 +79,12 @@ const handleSendAnswer = async (socket, io, data) => {
 
     try {
         let answers = [];
-        // Save answer to database
         await saveAnswerToDatabase(data);
         logger.info(`Answer saved to database for player ${playerId}`);
-
-        // Get question from database
         const question = await getPlayerQuestionByQuestionIdAndGameId(questionId, gameId);
-
-        // Get Game Configuration from Database
         const gameConfiguration = await getGameConfigurationById(gameId);
-
-        console.log(gameConfiguration);
-
-        // Get AI answer
-
         const aIAnswer = await getAIAnswer(gameConfiguration, answer, question);
-
-        // Get AI Player from database
-
         const aiPlayer = await getAIPlayer();
-
-        // Save AI answer to database
-
         const aiData = {
             questionId,
             gameId,
@@ -108,20 +92,14 @@ const handleSendAnswer = async (socket, io, data) => {
             answer: aIAnswer.answer,
             is_pretender: true,
         };
-
         const savedAnswer = await saveAnswerToDatabase(aiData);
-
         const aiAnswerText = savedAnswer?.answer_text;
-
         answers.push(answer, aiAnswerText);
-
-        // Get and validate judge
         const judgeId = await getGameJudge(playerId, gameId);
         if (!judgeId) {
             emitError(socket, 'No judge assigned to this game', gameId);
             return;
         }
-
         // Send answers to judge
         await notifyJudge(io, gameId, judgeId, answers);
         logger.info(`Answer forwarded to judge ${judgeId} for game ${gameId}`);
