@@ -15,16 +15,24 @@ const getAIPlayer = async () => {
 
 const getAIAnswer = async (gameConfiguration, playerAnswer, question) => {
     try {
+        const languageMap = {
+            fi: 'Finnish',
+            en: 'English',
+            swe: 'Swedish',
+        };
         const { configuration, languageModel } = gameConfiguration;
         const {
             ai_prompt: prompt,
             model_temperature: temperature,
             language_model: languageModelId,
+            language_used: languageCode,
         } = configuration;
+
+        const language = languageMap[languageCode] || languageCode;
 
         const modifiedPrompt =
             prompt +
-            ` , the answer should be around ${question.length} characters and never exceed 255 characters`;
+            ` , the answer should be around ${question.length} characters and never exceed 255 characters. Answer in ${language} language.`;
         return await azureService.getAIAnswer(
             modifiedPrompt,
             temperature,
