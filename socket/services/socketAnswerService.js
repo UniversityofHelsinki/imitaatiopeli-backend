@@ -78,6 +78,7 @@ const handleSendAnswer = async (socket, io, data) => {
     });
 
     try {
+        let answers = [];
         // Save answer to database
         await saveAnswerToDatabase(data);
         logger.info(`Answer saved to database for player ${playerId}`);
@@ -105,11 +106,14 @@ const handleSendAnswer = async (socket, io, data) => {
             gameId,
             playerId: aiPlayer.player_id,
             answer: aIAnswer.answer,
+            is_pretender: true,
         };
 
-        await saveAnswerToDatabase(aiData);
+        const savedAnswer = await saveAnswerToDatabase(aiData);
 
-        // update answer to contain ai answer
+        const aiAnswerText = savedAnswer?.answer_text;
+
+        answers.push(answer, aiAnswerText);
 
         // Get and validate judge
         const judgeId = await getGameJudge(playerId, gameId);
@@ -119,7 +123,7 @@ const handleSendAnswer = async (socket, io, data) => {
         }
 
         // Send answers to judge
-        await notifyJudge(io, gameId, judgeId, answer);
+        await notifyJudge(io, gameId, judgeId, answers);
         logger.info(`Answer forwarded to judge ${judgeId} for game ${gameId}`);
 
         // Confirm success to player
@@ -199,9 +203,9 @@ const getGameJudge = async (playerId, gameId) => {
  * @param {string} judgeId
  * @param {string} answer
  */
-const notifyJudge = async (io, gameId, judgeId, answer) => {
+const notifyJudge = async (io, gameId, judgeId, answers) => {
     try {
-        sendAnswersToJudge(io, gameId, judgeId, answer);
+        sendAnswersToJudge(io, gameId, judgeId, answers);
     } catch (error) {
         logger.error(`Failed to notify judge ${judgeId}:`, error);
         throw new Error('Failed to send answer to judge');
