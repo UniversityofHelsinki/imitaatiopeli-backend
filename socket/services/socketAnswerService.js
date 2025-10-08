@@ -13,7 +13,15 @@ const getAIPlayer = async () => {
     }
 };
 
-const getAIAnswer = async (gameConfiguration, playerAnswer, question) => {
+const getAIAnswer = async (
+    gameConfiguration,
+    playerAnswer,
+    question,
+    playerId,
+    aiId,
+    questionId,
+    gameId,
+) => {
     try {
         const languageMap = {
             fi: 'Finnish',
@@ -30,6 +38,36 @@ const getAIAnswer = async (gameConfiguration, playerAnswer, question) => {
 
         const language = languageMap[languageCode] || languageCode;
 
+        // get player questions
+        const playerQuestions = await dbClient(`/api/getJudgeQuestions/${playerId}/${gameId}`);
+
+        console.log(playerQuestions);
+
+        let conversationHistory = [];
+
+        // loop player questions and get AI answer by question
+        for (const playerQuestionObj of playerQuestions) {
+            // Add player question
+            const playerQuestion = playerQuestionObj?.question_text;
+            const playerQuestionId = playerQuestionObj?.question_id;
+            if (playerQuestion) {
+                conversationHistory.push(`player: ${playerQuestion}`);
+                if (playerQuestionId) {
+                    const aiAnswerByQuestion = await dbClient(
+                        `/api/getAIAnswerForQuestion/${aiId}/${playerQuestionId}/${gameId}`,
+                    );
+                    // Add bot answer
+                    if (aiAnswerByQuestion && aiAnswerByQuestion?.answer_text) {
+                        conversationHistory.push(`bot: ${aiAnswerByQuestion.answer_text}`);
+                    }
+                }
+            }
+        }
+
+        // Join all into a single conversation string
+        const conversationString = conversationHistory.join('\n');
+        console.log(conversationString);
+
         const modifiedPrompt =
             prompt +
             ` , the answer should be around ${question.length} characters and never exceed 255 characters. Answer in ${language} language.`;
@@ -38,7 +76,7 @@ const getAIAnswer = async (gameConfiguration, playerAnswer, question) => {
             temperature,
             languageModelId,
             playerAnswer,
-            question,
+            conversationString,
             languageModel.url,
         );
     } catch (error) {
@@ -83,12 +121,21 @@ const handleSendAnswer = async (socket, io, data) => {
         logger.info(`Answer saved to database for player ${playerId}`);
         const question = await getPlayerQuestionByQuestionIdAndGameId(questionId, gameId);
         const gameConfiguration = await getGameConfigurationById(gameId);
-        const aIAnswer = await getAIAnswer(gameConfiguration, answer, question);
         const aiPlayer = await getAIPlayer();
+        const aiPlayerId = aiPlayer.player_id.toString();
+        const aIAnswer = await getAIAnswer(
+            gameConfiguration,
+            answer,
+            question,
+            playerId,
+            aiPlayerId,
+            questionId,
+            gameId,
+        );
         const aiData = {
             questionId,
             gameId,
-            playerId: aiPlayer.player_id,
+            playerId: aiPlayerId,
             answer: aIAnswer.answer,
             is_pretender: true,
         };
