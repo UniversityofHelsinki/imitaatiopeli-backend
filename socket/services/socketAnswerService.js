@@ -1,7 +1,60 @@
 const { logger } = require('../../logger');
 const { dbClient } = require('../../services/dbService');
 const { sendAnswersToJudge } = require('../handlers/socketGameHandler');
+const azureService = require('../../services/azureService');
 const { getJudgeById } = require('../../api/dbApi');
+
+const getAIPlayer = async () => {
+    try {
+        return await dbClient('/api/aiPlayer');
+    } catch (error) {
+        logger.error('Failed to fetch AI player:', error);
+        throw new Error('Failed to retrieve AI player');
+    }
+};
+
+const getAIAnswer = async (gameConfiguration, playerAnswer, question) => {
+    try {
+        const languageMap = {
+            fi: 'Finnish',
+            en: 'English',
+            swe: 'Swedish',
+        };
+        const { configuration, languageModel } = gameConfiguration;
+        const {
+            ai_prompt: prompt,
+            model_temperature: temperature,
+            language_model: languageModelId,
+            language_used: languageCode,
+        } = configuration;
+
+        const language = languageMap[languageCode] || languageCode;
+
+        const modifiedPrompt =
+            prompt +
+            ` , the answer should be around ${question.length} characters and never exceed 255 characters. Answer in ${language} language.`;
+        return await azureService.getAIAnswer(
+            modifiedPrompt,
+            temperature,
+            languageModelId,
+            playerAnswer,
+            question,
+            languageModel.url,
+        );
+    } catch (error) {
+        logger.error('Failed to get AI answer:', error);
+        throw new Error('Failed to generate AI answer');
+    }
+};
+
+const getPlayerQuestionByQuestionIdAndGameId = async (questionId, gameId) => {
+    try {
+        return await dbClient(`/api/game/question/${questionId}/${gameId}`);
+    } catch (error) {
+        logger.error(`Failed to fetch question with ID ${questionId}:`, error);
+        throw new Error('Failed to retrieve question from database');
+    }
+};
 
 /**
  * Handle answer submission from player
@@ -25,19 +78,30 @@ const handleSendAnswer = async (socket, io, data) => {
     });
 
     try {
-        // Save answer to database
+        let answers = [];
         await saveAnswerToDatabase(data);
         logger.info(`Answer saved to database for player ${playerId}`);
-
-        // Get and validate judge
+        const question = await getPlayerQuestionByQuestionIdAndGameId(questionId, gameId);
+        const gameConfiguration = await getGameConfigurationById(gameId);
+        const aIAnswer = await getAIAnswer(gameConfiguration, answer, question);
+        const aiPlayer = await getAIPlayer();
+        const aiData = {
+            questionId,
+            gameId,
+            playerId: aiPlayer.player_id,
+            answer: aIAnswer.answer,
+            is_pretender: true,
+        };
+        const savedAnswer = await saveAnswerToDatabase(aiData);
+        const aiAnswerText = savedAnswer?.answer_text;
+        answers.push(answer, aiAnswerText);
         const judgeId = await getGameJudge(playerId, gameId);
         if (!judgeId) {
             emitError(socket, 'No judge assigned to this game', gameId);
             return;
         }
-
-        // Send answer to judge
-        await notifyJudge(io, gameId, judgeId, answer);
+        // Send answers to judge
+        await notifyJudge(io, gameId, judgeId, answers);
         logger.info(`Answer forwarded to judge ${judgeId} for game ${gameId}`);
 
         // Confirm success to player
@@ -84,6 +148,16 @@ const saveAnswerToDatabase = async (data) => {
     }
 };
 
+const getGameConfigurationById = async (gameId) => {
+    try {
+        const response = await dbClient(`/api/game/${gameId}`);
+        return response;
+    } catch (error) {
+        logger.error(`Failed to fetch game configuration for game ${gameId}:`, error);
+        throw new Error('Failed to retrieve game configuration');
+    }
+};
+
 /**
  * Get judge for the game
  * @param {string} playerId
@@ -107,9 +181,9 @@ const getGameJudge = async (playerId, gameId) => {
  * @param {string} judgeId
  * @param {string} answer
  */
-const notifyJudge = async (io, gameId, judgeId, answer) => {
+const notifyJudge = async (io, gameId, judgeId, answers) => {
     try {
-        sendAnswersToJudge(io, gameId, judgeId, answer);
+        sendAnswersToJudge(io, gameId, judgeId, answers);
     } catch (error) {
         logger.error(`Failed to notify judge ${judgeId}:`, error);
         throw new Error('Failed to send answer to judge');
