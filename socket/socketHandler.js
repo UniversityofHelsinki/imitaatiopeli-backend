@@ -13,6 +13,18 @@ const handleConnection = (io) => {
             await socketAnswerService.handleSendAnswer(socket, io, data);
         });
 
+        socket.on('sendQuestion', async (data) => {
+            const { questionId, gameId, judgeId, question } = data;
+            // Get judge's assigned player from database
+            const assignedPlayer = await getJudgePlayer(gameId, judgeId);
+            // Find player's WebSocket connection
+            const playerConnection = connectedUsers.get('user_456');
+            // Send question to specific player's socket
+            io.to(playerConnection.socketId).emit('receiveQuestion', {
+                questionText: "What's your favorite color?",
+            });
+        });
+
         socket.on('join-game', (data) => {
             connectionHandler.handleJoinGame(socket, data);
         });
