@@ -38,45 +38,64 @@ const getAIAnswer = async (
 
         const language = languageMap[languageCode] || languageCode;
 
+        const modifiedPrompt =
+            prompt +
+            ` , the answer should be around ${question.length} characters and never exceed 255 characters. Answer in ${language} language.`;
+
         // get player questions
         const playerQuestions = await dbClient(`/api/getJudgeQuestions/${playerId}/${gameId}`);
 
         console.log(playerQuestions);
 
-        let conversationHistory = [];
+        // Initialize messages array with system prompt
+        const messages = [
+            {
+                role: 'system',
+                content: modifiedPrompt,
+            },
+        ];
 
         // loop player questions and get AI answer by question
         for (const playerQuestionObj of playerQuestions) {
-            // Add player question
             const playerQuestion = playerQuestionObj?.question_text;
             const playerQuestionId = playerQuestionObj?.question_id;
+
             if (playerQuestion) {
-                conversationHistory.push(`player: ${playerQuestion}`);
+                // Add user question
+                messages.push({
+                    role: 'user',
+                    content: playerQuestion,
+                });
+
                 if (playerQuestionId) {
                     const aiAnswerByQuestion = await dbClient(
                         `/api/getAIAnswerForQuestion/${aiId}/${playerQuestionId}/${gameId}`,
                     );
-                    // Add bot answer
+
+                    // Add assistant answer if it exists
                     if (aiAnswerByQuestion && aiAnswerByQuestion?.answer_text) {
-                        conversationHistory.push(`bot: ${aiAnswerByQuestion.answer_text}`);
+                        messages.push({
+                            role: 'assistant',
+                            content: aiAnswerByQuestion.answer_text,
+                        });
                     }
                 }
             }
         }
 
-        // Join all into a single conversation string
-        const conversationString = conversationHistory.join('\n');
-        console.log(conversationString);
+        // Create the final message body
+        const messageBody = {
+            messages: messages,
+        };
 
-        const modifiedPrompt =
-            prompt +
-            ` , the answer should be around ${question.length} characters and never exceed 255 characters. Answer in ${language} language.`;
-        return await azureService.getAIAnswer(
+        console.log(JSON.stringify(messageBody, null, 2));
+
+        return await azureService.getAIContextualAnswer(
             modifiedPrompt,
             temperature,
             languageModelId,
             playerAnswer,
-            conversationString,
+            messageBody,
             languageModel.url,
         );
     } catch (error) {
