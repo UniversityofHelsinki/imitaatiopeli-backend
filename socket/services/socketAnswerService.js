@@ -24,6 +24,7 @@ const getAIAnswer = async (
     playerAnswer,
     question,
     playerId,
+    judgeId,
     aiId,
     questionId,
     gameId,
@@ -31,7 +32,7 @@ const getAIAnswer = async (
     try {
         const config = extractConfiguration(gameConfiguration, question);
         const messageBody = await buildConversationMessages(
-            playerId,
+            judgeId,
             aiId,
             gameId,
             config.modifiedPrompt,
@@ -71,8 +72,8 @@ const extractConfiguration = (gameConfiguration, question) => {
     };
 };
 
-const buildConversationMessages = async (playerId, aiId, gameId, systemPrompt) => {
-    const playerQuestions = await getPlayerQuestions(playerId, gameId);
+const buildConversationMessages = async (judgeId, aiId, gameId, systemPrompt) => {
+    const playerQuestions = await getPlayerQuestions(judgeId, gameId);
 
     const messages = [
         {
@@ -158,11 +159,17 @@ const handleSendAnswer = async (socket, io, data) => {
         const gameConfiguration = await getGameConfigurationById(gameId);
         const aiPlayer = await getAIPlayer();
         const aiPlayerId = aiPlayer.player_id.toString();
+        const judgeId = await getGameJudge(playerId, gameId);
+        if (!judgeId) {
+            emitError(socket, 'No judge assigned to this game', gameId);
+            return;
+        }
         const aIAnswer = await getAIAnswer(
             gameConfiguration,
             answer,
             question,
             playerId,
+            judgeId,
             aiPlayerId,
             questionId,
             gameId,
@@ -177,11 +184,6 @@ const handleSendAnswer = async (socket, io, data) => {
         const savedAnswer = await saveAnswerToDatabase(aiData);
         const aiAnswerText = savedAnswer?.answer_text;
         answers.push(answer, aiAnswerText);
-        const judgeId = await getGameJudge(playerId, gameId);
-        if (!judgeId) {
-            emitError(socket, 'No judge assigned to this game', gameId);
-            return;
-        }
         // Send answers to judge
         await notifyJudge(io, gameId, judgeId, answers);
         logger.info(`Answer forwarded to judge ${judgeId} for game ${gameId}`);
