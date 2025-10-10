@@ -23,15 +23,15 @@ const getAIAnswer = async (
     gameConfiguration,
     playerAnswer,
     question,
-    playerId,
+    judgeId,
     aiId,
     questionId,
     gameId,
 ) => {
     try {
-        const config = extractConfiguration(gameConfiguration, question);
+        const config = extractConfiguration(gameConfiguration, playerAnswer);
         const messageBody = await buildConversationMessages(
-            playerId,
+            judgeId,
             aiId,
             gameId,
             config.modifiedPrompt,
@@ -51,7 +51,7 @@ const getAIAnswer = async (
     }
 };
 
-const extractConfiguration = (gameConfiguration, question) => {
+const extractConfiguration = (gameConfiguration, playerAnswer) => {
     const { configuration, languageModel } = gameConfiguration;
     const {
         ai_prompt: prompt,
@@ -61,7 +61,7 @@ const extractConfiguration = (gameConfiguration, question) => {
     } = configuration;
 
     const language = LANGUAGE_MAP[languageCode] || languageCode;
-    const modifiedPrompt = `${prompt}, the answer should be around ${question.length} characters and never exceed 255 characters. Answer in ${language} language.`;
+    const modifiedPrompt = `${prompt}, the answer should be around ${playerAnswer.length} characters and never exceed 255 characters. Answer in ${language} language.`;
 
     return {
         modifiedPrompt,
@@ -71,8 +71,8 @@ const extractConfiguration = (gameConfiguration, question) => {
     };
 };
 
-const buildConversationMessages = async (playerId, aiId, gameId, systemPrompt) => {
-    const playerQuestions = await getPlayerQuestions(playerId, gameId);
+const buildConversationMessages = async (judgeId, aiId, gameId, systemPrompt) => {
+    const judgeQuestions = await getJudgeQuestions(judgeId, gameId);
 
     const messages = [
         {
@@ -81,17 +81,17 @@ const buildConversationMessages = async (playerId, aiId, gameId, systemPrompt) =
         },
     ];
 
-    for (const questionObj of playerQuestions) {
+    for (const questionObj of judgeQuestions) {
         await addQuestionAnswerPair(messages, questionObj, aiId, gameId);
     }
 
     return { messages };
 };
 
-const getPlayerQuestions = async (playerId, gameId) => {
-    const playerQuestions = await dbClient(`/api/getJudgeQuestions/${playerId}/${gameId}`);
-    console.log(playerQuestions);
-    return playerQuestions;
+const getJudgeQuestions = async (judgeId, gameId) => {
+    const judgeQuestions = await dbClient(`/api/getJudgeQuestions/${judgeId}/${gameId}`);
+    console.log(judgeQuestions);
+    return judgeQuestions;
 };
 
 const addQuestionAnswerPair = async (messages, questionObj, aiId, gameId) => {
@@ -158,11 +158,12 @@ const handleSendAnswer = async (socket, io, data) => {
         const gameConfiguration = await getGameConfigurationById(gameId);
         const aiPlayer = await getAIPlayer();
         const aiPlayerId = aiPlayer.player_id.toString();
+        const judgeId = await getGameJudge(playerId, gameId);
         const aIAnswer = await getAIAnswer(
             gameConfiguration,
             answer,
             question,
-            playerId,
+            judgeId,
             aiPlayerId,
             questionId,
             gameId,
@@ -177,7 +178,6 @@ const handleSendAnswer = async (socket, io, data) => {
         const savedAnswer = await saveAnswerToDatabase(aiData);
         const aiAnswerText = savedAnswer?.answer_text;
         answers.push(answer, aiAnswerText);
-        const judgeId = await getGameJudge(playerId, gameId);
         if (!judgeId) {
             emitError(socket, 'No judge assigned to this game', gameId);
             return;
