@@ -22,6 +22,36 @@ const azureClient = async (path, options = { method: 'GET' }) => {
     }
 };
 
+exports.getAIContextualAnswer = async (
+    prompt,
+    temperature,
+    languageModelId,
+    playerAnswer,
+    messageBody,
+    languageModelUrl,
+) => {
+    if (!prompt || !messageBody) {
+        throw new Error('Prompt, message body and temperature are required');
+    }
+
+    if (!playerAnswer) {
+        throw new Error('Player answer not found');
+    }
+
+    if (!languageModelId) {
+        throw new Error('Language model is invalid');
+    }
+
+    const url = `/api/askWithContext`;
+    return await azureClient(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messageBody, prompt, temperature, languageModelUrl }),
+    });
+};
+
 exports.getAIAnswer = async (
     prompt,
     temperature,
