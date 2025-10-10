@@ -13,38 +13,112 @@ const getAIPlayer = async () => {
     }
 };
 
-const getAIAnswer = async (gameConfiguration, playerAnswer, question) => {
+const LANGUAGE_MAP = {
+    fi: 'Finnish',
+    en: 'English',
+    swe: 'Swedish',
+};
+
+const getAIAnswer = async (
+    gameConfiguration,
+    playerAnswer,
+    question,
+    playerId,
+    judgeId,
+    aiId,
+    questionId,
+    gameId,
+) => {
     try {
-        const languageMap = {
-            fi: 'Finnish',
-            en: 'English',
-            swe: 'Swedish',
-        };
-        const { configuration, languageModel } = gameConfiguration;
-        const {
-            ai_prompt: prompt,
-            model_temperature: temperature,
-            language_model: languageModelId,
-            language_used: languageCode,
-        } = configuration;
+        const config = extractConfiguration(gameConfiguration, question);
+        const messageBody = await buildConversationMessages(
+            judgeId,
+            aiId,
+            gameId,
+            config.modifiedPrompt,
+        );
 
-        const language = languageMap[languageCode] || languageCode;
-
-        const modifiedPrompt =
-            prompt +
-            ` , the answer should be around ${question.length} characters and never exceed 255 characters. Answer in ${language} language.`;
-        return await azureService.getAIAnswer(
-            modifiedPrompt,
-            temperature,
-            languageModelId,
+        return await azureService.getAIContextualAnswer(
+            config.modifiedPrompt,
+            config.temperature,
+            config.languageModelId,
             playerAnswer,
-            question,
-            languageModel.url,
+            messageBody,
+            config.url,
         );
     } catch (error) {
         logger.error('Failed to get AI answer:', error);
         throw new Error('Failed to generate AI answer');
     }
+};
+
+const extractConfiguration = (gameConfiguration, question) => {
+    const { configuration, languageModel } = gameConfiguration;
+    const {
+        ai_prompt: prompt,
+        model_temperature: temperature,
+        language_model: languageModelId,
+        language_used: languageCode,
+    } = configuration;
+
+    const language = LANGUAGE_MAP[languageCode] || languageCode;
+    const modifiedPrompt = `${prompt}, the answer should be around ${question.length} characters and never exceed 255 characters. Answer in ${language} language.`;
+
+    return {
+        modifiedPrompt,
+        temperature,
+        languageModelId,
+        url: languageModel.url,
+    };
+};
+
+const buildConversationMessages = async (judgeId, aiId, gameId, systemPrompt) => {
+    const playerQuestions = await getPlayerQuestions(judgeId, gameId);
+
+    const messages = [
+        {
+            role: 'system',
+            content: systemPrompt,
+        },
+    ];
+
+    for (const questionObj of playerQuestions) {
+        await addQuestionAnswerPair(messages, questionObj, aiId, gameId);
+    }
+
+    return { messages };
+};
+
+const getPlayerQuestions = async (playerId, gameId) => {
+    const playerQuestions = await dbClient(`/api/getJudgeQuestions/${playerId}/${gameId}`);
+    console.log(playerQuestions);
+    return playerQuestions;
+};
+
+const addQuestionAnswerPair = async (messages, questionObj, aiId, gameId) => {
+    const playerQuestion = questionObj?.question_text;
+    const playerQuestionId = questionObj?.question_id;
+
+    if (!playerQuestion) return;
+
+    messages.push({
+        role: 'user',
+        content: playerQuestion,
+    });
+
+    if (playerQuestionId) {
+        const aiAnswer = await getAIAnswerForQuestion(aiId, playerQuestionId, gameId);
+        if (aiAnswer?.answer_text) {
+            messages.push({
+                role: 'assistant',
+                content: aiAnswer.answer_text,
+            });
+        }
+    }
+};
+
+const getAIAnswerForQuestion = async (aiId, questionId, gameId) => {
+    return await dbClient(`/api/getAIAnswerForQuestion/${aiId}/${questionId}/${gameId}`);
 };
 
 const getPlayerQuestionByQuestionIdAndGameId = async (questionId, gameId) => {
@@ -83,23 +157,33 @@ const handleSendAnswer = async (socket, io, data) => {
         logger.info(`Answer saved to database for player ${playerId}`);
         const question = await getPlayerQuestionByQuestionIdAndGameId(questionId, gameId);
         const gameConfiguration = await getGameConfigurationById(gameId);
-        const aIAnswer = await getAIAnswer(gameConfiguration, answer, question);
         const aiPlayer = await getAIPlayer();
+        const aiPlayerId = aiPlayer.player_id.toString();
+        const judgeId = await getGameJudge(playerId, gameId);
+        if (!judgeId) {
+            emitError(socket, 'No judge assigned to this game', gameId);
+            return;
+        }
+        const aIAnswer = await getAIAnswer(
+            gameConfiguration,
+            answer,
+            question,
+            playerId,
+            judgeId,
+            aiPlayerId,
+            questionId,
+            gameId,
+        );
         const aiData = {
             questionId,
             gameId,
-            playerId: aiPlayer.player_id,
+            playerId: aiPlayerId,
             answer: aIAnswer.answer,
             is_pretender: true,
         };
         const savedAnswer = await saveAnswerToDatabase(aiData);
         const aiAnswerText = savedAnswer?.answer_text;
         answers.push(answer, aiAnswerText);
-        const judgeId = await getGameJudge(playerId, gameId);
-        if (!judgeId) {
-            emitError(socket, 'No judge assigned to this game', gameId);
-            return;
-        }
         // Send answers to judge
         await notifyJudge(io, gameId, judgeId, answers);
         logger.info(`Answer forwarded to judge ${judgeId} for game ${gameId}`);
