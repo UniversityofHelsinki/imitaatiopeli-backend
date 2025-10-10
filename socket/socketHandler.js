@@ -2,6 +2,7 @@ const { logger } = require('../logger');
 const connectionHandler = require('./handlers/socketConnectionHandler');
 const gameHandler = require('./handlers/socketGameHandler');
 const socketUserService = require('../socket/services/socketUserService');
+const questionHandler = require('./handlers/socketPlayerQuestionHandler');
 
 const handleConnection = (io) => {
     return (socket) => {
@@ -18,6 +19,11 @@ const handleConnection = (io) => {
         socket.on('disconnect', () => {
             connectionHandler.handleDisconnect(socket);
         });
+
+        socket.on('send-question', (data) => {
+            questionHandler.handleSendQuestion(socket, data, io);
+        });
+
     };
 };
 

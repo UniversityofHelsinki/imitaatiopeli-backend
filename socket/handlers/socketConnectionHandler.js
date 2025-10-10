@@ -4,6 +4,12 @@ const socketUserService = require('../../socket/services/socketUserService');
 const handleJoinGame = (socket, data) => {
     const { userId, gameId, nickname } = data;
 
+    console.log('Join game data received:', {
+        socketId: socket.id,
+        ...data
+    });
+
+
     try {
         socketUserService.addUserSocket(userId, socket.id, gameId, nickname);
         logger.info(`User ${userId} joined game ${gameId} with socket ${socket.id}`);

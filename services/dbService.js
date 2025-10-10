@@ -50,4 +50,20 @@ exports.getLanguageModelById = async (languageModelId) => {
     return await dbClient(url);
 };
 
+exports.saveQuestion = async (questionData) => {
+    const url = `/game/saveQuestion`;
+    return await dbClient(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(questionData),
+    });
+};
+
+exports.getPlayroomJudgePlayerPairs = async (gameId) => {
+    const url = `/public/games/${gameId}/playroomPlayerPairs`;
+    return await dbClient(url);
+};
+
 exports.dbClient = dbClient;
