@@ -31,6 +31,16 @@ exports.player = (router) => {
         }
     });
 
+    router.get('/games/:id/playroomPlayerPairs', async (req, res) => {
+        const { id } = req.params;
+        try {
+            const playerPairs = await dbClient(`/api/games/${id}/playroomPlayerPairs`);
+            res.json(playerPairs);
+        } catch (error) {
+            return res.status(500).json(error.message);
+        }
+    });
+
     router.post('/games/join', async (req, res) => {
         const { body } = req;
 
