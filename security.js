@@ -28,7 +28,7 @@ const localhostIP = ipaddr.process('127.0.0.1');
  * requests are authenticated based on the configured strategy. If authentication fails,
  * a 401 Unauthorized response is sent.
  */
-const shibbolethAuthentication = (app, passport, adminGroups) => {
+const shibbolethAuthentication = (app, passport) => {
     passport.use(
         new ReverseProxyStrategy({
             headers: {
