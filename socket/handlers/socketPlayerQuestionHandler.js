@@ -6,8 +6,8 @@ const handleSendQuestion = async (socket, data) => {
     const { judgeId, playerId, gameId, content } = data;
 
     try {
-        const playerSockets = socketUserService.getUserSockets(playerId);
-        const targetSocket = playerSockets.find(s => s.gameId === parseInt(gameId, 10));
+        const playerSockets = socketUserService.getUserSockets(parseInt(playerId, 10));
+        const targetSocket = playerSockets.find((s) => s.gameId === parseInt(gameId, 10));
         console.log('targetSocket', targetSocket);
 
         if (!targetSocket) {
@@ -18,7 +18,7 @@ const handleSendQuestion = async (socket, data) => {
             judgeId,
             playerId,
             gameId,
-            questionText: content
+            questionText: content,
         });
 
         socket.to(targetSocket.socketId).emit('send-question', {
@@ -26,24 +26,24 @@ const handleSendQuestion = async (socket, data) => {
             gameId: parseInt(gameId, 10),
             content: question.questionText,
             judgeId,
-            created: question.created
+            created: question.created,
         });
 
         socket.emit('question-sent-success', {
             questionId: question.questionId,
             playerId,
-            gameId: parseInt(gameId, 10)
+            gameId: parseInt(gameId, 10),
         });
 
         logger.info(`Judge ${judgeId} sent question to player ${playerId} in game ${gameId}`);
     } catch (error) {
         logger.warn(`Send question error: ${error.message}`);
         socket.emit('question-sent-error', {
-            error: error.message
+            error: error.message,
         });
     }
 };
 
 module.exports = {
-    handleSendQuestion
+    handleSendQuestion,
 };

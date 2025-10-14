@@ -35,6 +35,11 @@ exports.getPlayerById = async (playerId) => {
     return await dbClient(url);
 };
 
+exports.getJudgeById = async (playerId, gameId) => {
+    const url = `/api/getJudgeById/${playerId}/${gameId}`;
+    return await dbClient(url);
+};
+
 exports.getHelloFromBackend = async () => {
     const url = `/api/hello`;
     return await dbClient(url);
@@ -51,7 +56,7 @@ exports.getLanguageModelById = async (languageModelId) => {
 };
 
 exports.saveQuestion = async (questionData) => {
-    const url = `/game/saveQuestion`;
+    const url = `/api/game/saveQuestion`;
     return await dbClient(url, {
         method: 'POST',
         headers: {
