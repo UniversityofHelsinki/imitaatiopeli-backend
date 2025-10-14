@@ -22,9 +22,9 @@ const handleSendQuestion = async (socket, data) => {
         });
 
         socket.to(targetSocket.socketId).emit('send-question', {
-            questionId: question.questionId,
+            questionId: question.question_id,
             gameId: parseInt(gameId, 10),
-            content: question.questionText,
+            content: question.question_text,
             judgeId,
             created: question.created,
         });
