@@ -3,8 +3,32 @@ const crypto = require('crypto');
 const { AUTHENTICATION_STRATEGY } = require('./utils/constants');
 const ReverseProxyStrategy = require('./services/reverseProxyStragegy');
 const Constants = require('./Constants');
+const dbService = require('./services/dbService');
 
 const SECRET_KEY = process.env.URL_SIGNER_KEY;
+
+const validatePlayerAuthentication = async (req) => {
+    const requiredHeaders = [
+        'x-player-session-token',
+        'x-player-nickname',
+        'x-player-id',
+        'x-player-game-id',
+    ];
+    const missingHeaders = requiredHeaders.some((header) => !req.headers[header]);
+
+    if (missingHeaders) {
+        console.log('Missing headers:', requiredHeaders);
+        return { error: 'Access denied. Insufficient permissions.' };
+    }
+
+    const player = await dbService.getPlayerById(req.headers['x-player-id']);
+
+    if (!player || player?.session_token !== req.headers['x-player-session-token']) {
+        return { error: 'Access denied. Insufficient permissions.' };
+    }
+
+    return null;
+};
 
 /**
  * Contains the IP address of the local host.
@@ -42,8 +66,20 @@ const shibbolethAuthentication = (app, passport) => {
     );
     app.use(passport.initialize());
 
-    app.use(function (req, res, next) {
+    app.use(async function (req, res, next) {
+        if (
+            req.path === '/public/games/join' ||
+            req.path.match(/^\/public\/games\/[^/]+$/) ||
+            req.path.match(/^\/public\/games\/[^/]+\/players$/)
+        ) {
+            return next();
+        }
+
         if (req.path.startsWith('/public')) {
+            const validationError = await validatePlayerAuthentication(req);
+            if (validationError) {
+                return res.status(403).json(validationError);
+            }
             next();
         } else {
             const hyGroupCn = req.headers['hygroupcn'];

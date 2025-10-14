@@ -3,6 +3,7 @@ const connectionHandler = require('./handlers/socketConnectionHandler');
 const gameHandler = require('./handlers/socketGameHandler');
 const socketAnswerService = require('./services/socketAnswerService');
 const socketUserService = require('../socket/services/socketUserService');
+const dbService = require('../services/dbService');
 
 const handleConnection = (io) => {
     return (socket) => {
@@ -13,8 +14,8 @@ const handleConnection = (io) => {
             await socketAnswerService.handleSendAnswer(socket, io, data);
         });
 
-        socket.on('join-game', (data) => {
-            connectionHandler.handleJoinGame(socket, data);
+        socket.on('join-game', async (data) => {
+            await connectionHandler.handleJoinGame(socket, data);
         });
 
         socket.on('start-game', (data) => {

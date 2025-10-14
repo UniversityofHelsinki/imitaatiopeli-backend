@@ -3,6 +3,7 @@ const { dbClient } = require('../../services/dbService');
 const { sendAnswersToJudge } = require('../handlers/socketGameHandler');
 const azureService = require('../../services/azureService');
 const { getJudgeById } = require('../../api/dbApi');
+const dbService = require('../../services/dbService');
 
 const getAIPlayer = async () => {
     try {
@@ -129,6 +130,19 @@ const getPlayerQuestionByQuestionIdAndGameId = async (questionId, gameId) => {
     }
 };
 
+const validatePlayerAuth = async (playerId, gameId, session_token) => {
+    if (!playerId || !gameId || !session_token) {
+        return { valid: false, error: 'Invalid player or game id' };
+    }
+
+    const player = await dbService.getPlayerById(playerId);
+    if (!player || player?.session_token !== session_token) {
+        return { valid: false, error: 'Access denied. Insufficient permissions.' };
+    }
+
+    return { valid: true, error: null };
+};
+
 /**
  * Handle answer submission from player
  * @param {Object} socket - Socket instance
@@ -136,7 +150,14 @@ const getPlayerQuestionByQuestionIdAndGameId = async (questionId, gameId) => {
  * @param {Object} data - Answer data
  */
 const handleSendAnswer = async (socket, io, data) => {
-    const { questionId, gameId, playerId, answer } = data;
+    const { questionId, gameId, playerId, answer, session_token } = data;
+
+    // Validate authentication
+    const authResult = await validatePlayerAuth(playerId, gameId, session_token);
+    if (!authResult.valid) {
+        emitError(socket, authResult.error, gameId);
+        return;
+    }
 
     // Validate input
     const validationError = validateAnswerData(data);
