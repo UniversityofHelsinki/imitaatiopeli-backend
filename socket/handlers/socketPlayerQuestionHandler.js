@@ -3,7 +3,7 @@ const socketUserService = require('../services/socketUserService');
 const dbApi = require('../../api/dbApi');
 
 const handleSendQuestion = async (socket, data) => {
-    const { judgeId, playerId, gameId, content } = data;
+    const { judgeId, gameId, content } = data;
 
     try {
         const playerSockets = socketUserService.getUserSockets(parseInt(playerId, 10));
@@ -16,7 +16,6 @@ const handleSendQuestion = async (socket, data) => {
 
         const question = await dbApi.saveQuestion({
             judgeId,
-            playerId,
             gameId,
             questionText: content,
         });
@@ -31,11 +30,11 @@ const handleSendQuestion = async (socket, data) => {
 
         socket.emit('question-sent-success', {
             questionId: question.questionId,
-            playerId,
+            judgeId,
             gameId: parseInt(gameId, 10),
         });
 
-        logger.info(`Judge ${judgeId} sent question to player ${playerId} in game ${gameId}`);
+        logger.info(`Judge ${judgeId} sent question to player in game ${gameId}`);
     } catch (error) {
         logger.warn(`Send question error: ${error.message}`);
         socket.emit('question-sent-error', {

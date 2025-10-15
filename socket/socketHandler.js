@@ -14,7 +14,7 @@ const handleConnection = (io) => {
             await socketAnswerService.handleSendAnswer(socket, io, data);
         });
 
-        socket.on('sendQuestion', async (data) => {
+        /*socket.on('sendQuestion', async (data) => {
             const { questionId, gameId, judgeId, question } = data;
             // Get judge's assigned player from database
             const assignedPlayer = await getJudgePlayer(gameId, judgeId);
@@ -24,7 +24,7 @@ const handleConnection = (io) => {
             io.to(playerConnection.socketId).emit('receiveQuestion', {
                 questionText: "What's your favorite color?",
             });
-        });
+        });*/
 
         socket.on('join-game', (data) => {
             connectionHandler.handleJoinGame(socket, data);
