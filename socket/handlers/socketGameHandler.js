@@ -30,7 +30,7 @@ const handleStartGame = (socket, data, io) => {
     }
 };
 
-const sendAnswersToJudge = (io, gameId, judgeId, answers) => {
+const sendAnswersToJudge = (io, gameId, judgeId, questionId, answers) => {
     const judgeSockets = socketUserService.getUserSockets(judgeId);
     if (judgeSockets.length === 0) {
         logger.warn(`No sockets found for judge ${judgeId}`);
@@ -42,6 +42,8 @@ const sendAnswersToJudge = (io, gameId, judgeId, answers) => {
             io.to(socketInfo.socketId).emit('send_answers_to_judge', {
                 answers,
                 gameId,
+                judgeId,
+                questionId,
                 timestamp: Date.now(),
             });
             logger.info(
