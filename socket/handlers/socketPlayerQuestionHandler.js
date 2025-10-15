@@ -1,29 +1,31 @@
 const { logger } = require('../../logger');
 const socketUserService = require('../services/socketUserService');
 const dbApi = require('../../api/dbApi');
+const { dbClient } = require('../../services/dbService');
 
 const handleSendQuestion = async (socket, data) => {
-    const { judgeId, gameId, content } = data;
+    const { judgeId, gameId, questionText } = data;
 
     try {
-        const playerSockets = socketUserService.getUserSockets(parseInt(playerId, 10));
+        const pairs = await dbClient(`/api/players/pairs/${gameId}/${judgeId}`);
+        const targetPlayer = pairs.find(pair => pair.judge_id === judgeId).player_id;
+        const playerSockets = socketUserService.getUserSockets(parseInt(targetPlayer));
         const targetSocket = playerSockets.find((s) => s.gameId === parseInt(gameId, 10));
-        console.log('targetSocket', targetSocket);
 
         if (!targetSocket) {
-            throw new Error('Player is not connected');
+            throw new Error('Target player is not connected');
         }
 
         const question = await dbApi.saveQuestion({
             judgeId,
             gameId,
-            questionText: content,
+            questionText,
         });
 
         socket.to(targetSocket.socketId).emit('send-question', {
             questionId: question.question_id,
             gameId: parseInt(gameId, 10),
-            content: question.question_text,
+            questionText: question.question_text,
             judgeId,
             created: question.created,
         });
