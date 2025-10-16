@@ -25,8 +25,8 @@ const handleConnection = (io) => {
             connectionHandler.handleDisconnect(socket);
         });
 
-        socket.on('send-question', (data) => {
-            questionHandler.handleSendQuestion(socket, data, io);
+        socket.on('send-question', async (data) => {
+            await questionHandler.handleSendQuestion(socket, data, io);
         });
     };
 };
