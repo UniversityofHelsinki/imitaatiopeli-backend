@@ -46,4 +46,14 @@ exports.player = (router) => {
         }
         res.status(500).end();
     });
+
+    router.post('/game/saveQuestion', async (req, res) => {
+        try {
+            const result = await dbApi.saveQuestion(req.body);
+            res.json(result);
+        } catch (error) {
+            console.error('Error saving question:', error);
+            res.status(500).json({ error: 'Failed to save question' });
+        }
+    });
 };

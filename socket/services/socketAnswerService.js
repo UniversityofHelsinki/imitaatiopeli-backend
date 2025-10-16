@@ -183,7 +183,7 @@ const handleSendAnswer = async (socket, io, data) => {
             return;
         }
         // Send answers to judge
-        await notifyJudge(io, gameId, judgeId, answers);
+        await notifyJudge(io, gameId, judgeId, questionId, answers);
         logger.info(`Answer forwarded to judge ${judgeId} for game ${gameId}`);
 
         // Confirm success to player
@@ -263,9 +263,9 @@ const getGameJudge = async (playerId, gameId) => {
  * @param {string} judgeId
  * @param {string} answer
  */
-const notifyJudge = async (io, gameId, judgeId, answers) => {
+const notifyJudge = async (io, gameId, judgeId, questionId, answers) => {
     try {
-        sendAnswersToJudge(io, gameId, judgeId, answers);
+        sendAnswersToJudge(io, gameId, judgeId, questionId, answers);
     } catch (error) {
         logger.error(`Failed to notify judge ${judgeId}:`, error);
         throw new Error('Failed to send answer to judge');

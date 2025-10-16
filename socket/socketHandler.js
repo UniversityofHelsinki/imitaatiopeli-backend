@@ -3,12 +3,12 @@ const connectionHandler = require('./handlers/socketConnectionHandler');
 const gameHandler = require('./handlers/socketGameHandler');
 const socketAnswerService = require('./services/socketAnswerService');
 const socketUserService = require('../socket/services/socketUserService');
+const questionHandler = require('./handlers/socketPlayerQuestionHandler');
 
 const handleConnection = (io) => {
     return (socket) => {
         logger.info(`User connected: ${socket.id}`);
 
-        // Register the event handler
         socket.on('send-answer', async (data) => {
             await socketAnswerService.handleSendAnswer(socket, io, data);
         });
@@ -23,6 +23,10 @@ const handleConnection = (io) => {
 
         socket.on('disconnect', () => {
             connectionHandler.handleDisconnect(socket);
+        });
+
+        socket.on('send-question', async (data) => {
+            await questionHandler.handleSendQuestion(socket, data, io);
         });
     };
 };
