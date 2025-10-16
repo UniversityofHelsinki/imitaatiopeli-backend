@@ -56,3 +56,12 @@ exports.savePlayer = async (req, res) => {
         ]);
     }
 };
+
+exports.saveQuestion = async (questionData) => {
+    try {
+        return await dbService.saveQuestion(questionData);
+    } catch (error) {
+        console.error(`Error saving question: ${error.message}`);
+        throw error;
+    }
+};

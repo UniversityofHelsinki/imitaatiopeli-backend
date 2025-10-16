@@ -1,8 +1,9 @@
 let connectedUsers = new Map();
 
 const addUserSocket = (userId, socketId, gameId, nickname) => {
-    if (connectedUsers.has(userId)) {
-        const userData = connectedUsers.get(userId);
+    const userIdNum = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    if (connectedUsers.has(userIdNum)) {
+        const userData = connectedUsers.get(userIdNum);
         const socketExists = Array.from(userData.sockets).some((s) => s.socketId === socketId);
 
         if (!socketExists) {
@@ -14,7 +15,7 @@ const addUserSocket = (userId, socketId, gameId, nickname) => {
             throw new Error(`Socket ${socketId} already exists for user ${userId}`);
         }
     } else {
-        connectedUsers.set(userId, {
+        connectedUsers.set(userIdNum, {
             nickname: nickname,
             sockets: new Set([
                 {
@@ -44,12 +45,14 @@ const removeUserSocket = (socketId) => {
 };
 
 const getUserSockets = (userId) => {
-    const userData = connectedUsers.get(userId);
+    const userIdNum = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    const userData = connectedUsers.get(userIdNum);
     return userData ? Array.from(userData.sockets) : [];
 };
 
 const isUserConnected = (userId) => {
-    const userData = connectedUsers.get(userId);
+    const userIdNum = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    const userData = connectedUsers.get(userIdNum);
     return userData && userData.sockets.size > 0;
 };
 
