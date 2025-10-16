@@ -6,15 +6,24 @@ const handleJoinGame = (socket, data) => {
 
     console.log('Join game data received:', {
         socketId: socket.id,
-        ...data
+        ...data,
     });
-
 
     try {
         socketUserService.addUserSocket(userId, socket.id, gameId, nickname);
         logger.info(`User ${userId} joined game ${gameId} with socket ${socket.id}`);
-        console.log('connectedUsers', socketUserService.getConnectedUsers());
-
+        console.log(
+            'connectedUsers',
+            JSON.stringify(
+                Array.from(socketUserService.getConnectedUsers()).map(([userId, userData]) => ({
+                    userId,
+                    nickname: userData.nickname,
+                    sockets: Array.from(userData.sockets),
+                })),
+                null,
+                2,
+            ),
+        );
         socket.emit('join-game-success', {
             userId,
             gameId: parseInt(gameId, 10),
