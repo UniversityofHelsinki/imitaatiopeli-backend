@@ -2,6 +2,7 @@ const ipaddr = require('ipaddr.js');
 const crypto = require('crypto');
 const { AUTHENTICATION_STRATEGY } = require('./utils/constants');
 const ReverseProxyStrategy = require('./services/reverseProxyStragegy');
+const Constants = require('./Constants');
 
 const SECRET_KEY = process.env.URL_SIGNER_KEY;
 
@@ -33,7 +34,7 @@ const shibbolethAuthentication = (app, passport) => {
             headers: {
                 eppn: { alias: 'eppn', required: true },
                 preferredlanguage: { alias: 'preferredLanguage', required: false },
-                hyGroupCn: { alias: 'hyGroupCn', required: false },
+                hyGroupCn: { alias: 'hyGroupCn', required: true },
                 displayName: { alias: 'displayName', required: false },
             },
             whitelist: localhostIP,
@@ -45,9 +46,20 @@ const shibbolethAuthentication = (app, passport) => {
         if (req.path.startsWith('/public')) {
             next();
         } else {
-            passport.authenticate(AUTHENTICATION_STRATEGY, { session: false })(req, res, next);
+            const hyGroupCn = req.headers['hygroupcn'];
+            if (isAdminGroup(hyGroupCn)) {
+                // Authenticate only if the group matches
+                passport.authenticate(AUTHENTICATION_STRATEGY, { session: false })(req, res, next);
+            } else {
+                // Reject access if group doesn't match
+                res.status(403).json({ error: 'Access denied. Insufficient permissions.' });
+            }
         }
     });
+};
+
+const isAdminGroup = (hyGroupCn) => {
+    return hyGroupCn?.includes(Constants.ADMIN_GROUP);
 };
 
 const generateSignature = (data) => {
