@@ -32,6 +32,8 @@ const handleStartGame = (socket, data, io) => {
 
 const sendAnswersToJudge = (io, gameId, judgeId, questionId, answers) => {
     const judgeSockets = socketUserService.getUserSockets(judgeId);
+    console.log('judgeId type:', typeof judgeId, 'value:', judgeId); // Add this line
+
     if (judgeSockets.length === 0) {
         logger.warn(`No sockets found for judge ${judgeId}`);
         return;
