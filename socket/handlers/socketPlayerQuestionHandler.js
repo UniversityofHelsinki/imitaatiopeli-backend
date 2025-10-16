@@ -10,11 +10,6 @@ const handleSendQuestion = async (socket, data) => {
         const pairs = await dbClient(`/api/players/pairs/${gameId}/${judgeId}`);
         const targetPlayer = pairs.find((pair) => pair.judge_id === judgeId).player_id;
         const playerSockets = socketUserService.getUserSockets(parseInt(targetPlayer));
-        const targetSocket = playerSockets.find((s) => s.gameId === parseInt(gameId, 10));
-
-        if (!targetSocket) {
-            throw new Error('Target player is not connected');
-        }
 
         const question = await dbApi.saveQuestion({
             judgeId,
@@ -22,12 +17,21 @@ const handleSendQuestion = async (socket, data) => {
             questionText,
         });
 
-        socket.to(targetSocket.socketId).emit('send-question', {
-            questionId: question.question_id,
-            gameId: parseInt(gameId, 10),
-            content: question.question_text,
-            judgeId: judgeId,
-            created: question.created,
+        if (playerSockets.length === 0) {
+            logger.warn(`No sockets found for judge ${judgeId}`);
+            return;
+        }
+
+        playerSockets.forEach((socketInfo) => {
+            if (socketInfo.gameId === parseInt(gameId, 10)) {
+                socket.to(socketInfo.socketId).emit('send-question', {
+                    questionId: question.question_id,
+                    gameId: parseInt(gameId, 10),
+                    content: question.question_text,
+                    judgeId: judgeId,
+                    created: question.created,
+                });
+            }
         });
 
         socket.emit('question-sent-success', {
