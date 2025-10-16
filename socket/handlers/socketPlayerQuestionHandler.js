@@ -8,7 +8,7 @@ const handleSendQuestion = async (socket, data) => {
 
     try {
         const pairs = await dbClient(`/api/players/pairs/${gameId}/${judgeId}`);
-        const targetPlayer = pairs.find(pair => pair.judge_id === judgeId).player_id;
+        const targetPlayer = pairs.find((pair) => pair.judge_id === judgeId).player_id;
         const playerSockets = socketUserService.getUserSockets(parseInt(targetPlayer));
         const targetSocket = playerSockets.find((s) => s.gameId === parseInt(gameId, 10));
 
@@ -25,8 +25,8 @@ const handleSendQuestion = async (socket, data) => {
         socket.to(targetSocket.socketId).emit('send-question', {
             questionId: question.question_id,
             gameId: parseInt(gameId, 10),
-            questionText: question.question_text,
-            judgeId,
+            content: question.question_text,
+            judgeId: judgeId,
             created: question.created,
         });
 
