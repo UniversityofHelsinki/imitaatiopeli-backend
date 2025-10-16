@@ -4,6 +4,7 @@ const gameHandler = require('./handlers/socketGameHandler');
 const socketAnswerService = require('./services/socketAnswerService');
 const socketUserService = require('../socket/services/socketUserService');
 const questionHandler = require('./handlers/socketPlayerQuestionHandler');
+const socketPlayerGuessHandler = require('./handlers/socketPlayerGuessHandler');
 
 const handleConnection = (io) => {
     return (socket) => {
@@ -27,6 +28,10 @@ const handleConnection = (io) => {
 
         socket.on('send-question', async (data) => {
             await questionHandler.handleSendQuestion(socket, data, io);
+        });
+
+        socket.on('send-guess-to-answer', async (data) => {
+            await socketPlayerGuessHandler.handleSendGuessToAnswer(socket, data);
         });
     };
 };
