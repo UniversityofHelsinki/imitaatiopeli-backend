@@ -13,8 +13,8 @@ const handleConnection = (io) => {
             await socketAnswerService.handleSendAnswer(socket, io, data);
         });
 
-        socket.on('join-game', (data) => {
-            connectionHandler.handleJoinGame(socket, data);
+        socket.on('join-game', async (data) => {
+            await connectionHandler.handleJoinGame(socket, data);
         });
 
         socket.on('start-game', (data) => {

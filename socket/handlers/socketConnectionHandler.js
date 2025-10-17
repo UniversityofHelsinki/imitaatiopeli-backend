@@ -1,15 +1,22 @@
 const { logger } = require('../../logger');
 const socketUserService = require('../../socket/services/socketUserService');
+const dbService = require('../../services/dbService');
 
-const handleJoinGame = (socket, data) => {
-    const { userId, gameId, nickname } = data;
-
+const handleJoinGame = async (socket, data) => {
+    const { userId, gameId, nickname, session_token } = data;
+    if (!userId || !gameId || !nickname || !session_token) {
+        return;
+    }
     console.log('Join game data received:', {
         socketId: socket.id,
         ...data,
     });
-
     try {
+        const player = await dbService.getPlayerById(userId);
+        if (!player || player?.session_token !== session_token) {
+            return;
+        }
+
         socketUserService.addUserSocket(userId, socket.id, gameId, nickname);
         logger.info(`User ${userId} joined game ${gameId} with socket ${socket.id}`);
         console.log(
