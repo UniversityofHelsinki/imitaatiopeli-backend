@@ -173,7 +173,7 @@ const handleSendAnswer = async (socket, io, data) => {
 
     try {
         let answers = [];
-        await saveAnswerToDatabase(data);
+        let storedAnswer = await saveAnswerToDatabase(data);
         logger.info(`Answer saved to database for player ${playerId}`);
         const question = await getPlayerQuestionByQuestionIdAndGameId(questionId, gameId);
         const gameConfiguration = await getGameConfigurationById(gameId);
@@ -197,8 +197,7 @@ const handleSendAnswer = async (socket, io, data) => {
             is_pretender: true,
         };
         const savedAnswer = await saveAnswerToDatabase(aiData);
-        const aiAnswerText = savedAnswer?.answer_text;
-        answers.push(answer, aiAnswerText);
+        answers.push(storedAnswer, savedAnswer);
         if (!judgeId) {
             emitError(socket, 'No judge assigned to this game', gameId);
             return;
