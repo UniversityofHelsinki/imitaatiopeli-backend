@@ -58,7 +58,7 @@ const shibbolethAuthentication = (app, passport) => {
             headers: {
                 eppn: { alias: 'eppn', required: true },
                 preferredlanguage: { alias: 'preferredLanguage', required: false },
-                hyGroupCn: { alias: 'hyGroupCn', required: true },
+                hyGroupCn: { alias: 'hyGroupCn', required: false },
                 displayName: { alias: 'displayName', required: false },
             },
             whitelist: localhostIP,
@@ -78,7 +78,7 @@ const shibbolethAuthentication = (app, passport) => {
         if (req.path.startsWith('/public')) {
             const validationError = await validatePlayerAuthentication(req);
             if (validationError) {
-                return res.status(401).json(validationError);
+                return res.status(403).json(validationError);
             }
             next();
         } else {
@@ -88,7 +88,7 @@ const shibbolethAuthentication = (app, passport) => {
                 passport.authenticate(AUTHENTICATION_STRATEGY, { session: false })(req, res, next);
             } else {
                 // Reject access if group doesn't match
-                res.status(401).json({ error: 'Access denied. Insufficient permissions.' });
+                res.status(403).json({ error: 'Access denied. Insufficient permissions.' });
             }
         }
     });
