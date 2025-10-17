@@ -14,12 +14,6 @@ const getAIPlayer = async () => {
     }
 };
 
-const LANGUAGE_MAP = {
-    fi: 'Finnish',
-    en: 'English',
-    swe: 'Swedish',
-};
-
 const getAIAnswer = async (
     gameConfiguration,
     playerAnswer,
@@ -61,9 +55,14 @@ const extractConfiguration = (gameConfiguration, playerAnswer) => {
         language_used: languageCode,
     } = configuration;
 
-    const language = LANGUAGE_MAP[languageCode] || languageCode;
-    const modifiedPrompt = `${prompt}, the answer should be around ${playerAnswer.length} characters and never exceed 255 characters. Answer in ${language} language.`;
+    const languageSuffix = {
+        fi: `vastauksen tulisi olla noin ${playerAnswer.length} merkkiä pitkä eikä ylittää koskaan 255 merkkiä. Vastaa suomen kielellä.`,
+        en: `the answer should be around ${playerAnswer.length} characters and never exceed 255 characters. Answer in English language.`,
+        swe: `svaret bör vara cirka ${playerAnswer.length} tecken långt och får aldrig överstiga 255 tecken. Svara på svenska.`,
+    };
 
+    const suffix = languageSuffix[languageCode] || languageSuffix.en;
+    const modifiedPrompt = `${prompt}, ${suffix}`;
     return {
         modifiedPrompt,
         temperature,
