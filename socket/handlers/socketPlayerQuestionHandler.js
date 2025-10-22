@@ -34,10 +34,14 @@ const handleSendQuestion = async (socket, data) => {
             }
         });
 
-        socket.emit('question-sent-success', {
-            questionId: question.questionId,
-            judgeId,
-            gameId: parseInt(gameId, 10),
+        playerSockets.forEach((socketInfo) => {
+            if (socketInfo.gameId === parseInt(gameId, 10)) {
+                socket.to(socketInfo.socketId).emit('question-sent-success', {
+                    questionId: question.questionId,
+                    judgeId,
+                    gameId: parseInt(gameId, 10),
+                });
+            }
         });
 
         logger.info(`Judge ${judgeId} sent question to player in game ${gameId}`);

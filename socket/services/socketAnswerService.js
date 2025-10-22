@@ -154,14 +154,14 @@ const handleSendAnswer = async (socket, io, data) => {
     // Validate authentication
     const authResult = await validatePlayerAuth(playerId, gameId, session_token);
     if (!authResult.valid) {
-        emitError(socket, authResult.error, gameId);
+        emitError(io, socket, authResult.error, gameId);
         return;
     }
 
     // Validate input
     const validationError = validateAnswerData(data);
     if (validationError) {
-        emitError(socket, validationError, gameId);
+        emitError(io, socket, validationError, gameId);
         return;
     }
 
@@ -198,7 +198,7 @@ const handleSendAnswer = async (socket, io, data) => {
         const savedAnswer = await saveAnswerToDatabase(aiData);
         answers.push(storedAnswer, savedAnswer);
         if (!judgeId) {
-            emitError(socket, 'No judge assigned to this game', gameId);
+            emitError(io, socket, 'No judge assigned to this game', gameId);
             return;
         }
         // Send answers to judge
@@ -206,7 +206,7 @@ const handleSendAnswer = async (socket, io, data) => {
         logger.info(`Answer forwarded to judge ${judgeId} for game ${gameId}`);
 
         // Confirm success to player
-        emitSuccess(socket, gameId);
+        emitSuccess(io, socket, gameId);
     } catch (error) {
         logger.error(`Failed to process answer for player ${playerId} in game ${gameId}:`, error);
         emitError(socket, getErrorMessage(error), gameId);
@@ -296,8 +296,8 @@ const notifyJudge = async (io, gameId, judgeId, questionId, answers) => {
  * @param {Object} socket
  * @param {string} gameId
  */
-const emitSuccess = (socket, gameId) => {
-    socket.emit('send-answer-success', {
+const emitSuccess = (io, socket, gameId) => {
+    io.to(socket.id).emit('answer-sent-success', {
         message: 'Answer submitted successfully',
         gameId,
         timestamp: Date.now(),
@@ -310,8 +310,8 @@ const emitSuccess = (socket, gameId) => {
  * @param {string} errorMessage
  * @param {string} gameId
  */
-const emitError = (socket, errorMessage, gameId) => {
-    socket.emit('send-answer-error', {
+const emitError = (io, socket, errorMessage, gameId) => {
+    io.to(socket).emit('send-answer-error', {
         error: errorMessage,
         gameId,
         timestamp: Date.now(),
