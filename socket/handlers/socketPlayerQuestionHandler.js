@@ -35,7 +35,7 @@ const handleSendQuestion = async (socket, data) => {
         });
 
         console.log('judge socketId: ', socket.id);
-        socket.to(socket.id).emit('question-sent-success', {
+        socket.emit('question-sent-success', {
             questionId: question.questionId,
             judgeId,
             gameId: parseInt(gameId, 10),
