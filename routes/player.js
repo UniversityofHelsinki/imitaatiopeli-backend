@@ -5,6 +5,7 @@ exports.player = (router) => {
     router.get('/hello', dbApi.getHelloFromDb);
     router.get('/getPlayerById/:playerId', dbApi.getPlayerById);
     router.post('/savePlayer', dbApi.savePlayer);
+    router.get('/judge/summary/:judgeId/:gameId', dbApi.getJudgeSummary);
 
     router.get('/games/:code', async (req, res) => {
         const { code } = req.params;
