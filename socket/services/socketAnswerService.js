@@ -206,7 +206,7 @@ const handleSendAnswer = async (socket, io, data) => {
         logger.info(`Answer forwarded to judge ${judgeId} for game ${gameId}`);
 
         // Confirm success to player
-        emitSuccess(io, socket, gameId);
+        emitSuccess(socket, gameId);
     } catch (error) {
         logger.error(`Failed to process answer for player ${playerId} in game ${gameId}:`, error);
         emitError(socket, getErrorMessage(error), gameId);
@@ -296,8 +296,8 @@ const notifyJudge = async (io, gameId, judgeId, questionId, answers) => {
  * @param {Object} socket
  * @param {string} gameId
  */
-const emitSuccess = (io, socket, gameId) => {
-    io.to(socket.id).emit('answer-sent-success', {
+const emitSuccess = (socket, gameId) => {
+    socket.emit('answer-sent-success', {
         message: 'Answer submitted successfully',
         gameId,
         timestamp: Date.now(),
