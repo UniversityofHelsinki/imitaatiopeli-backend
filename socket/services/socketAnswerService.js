@@ -154,14 +154,14 @@ const handleSendAnswer = async (socket, io, data) => {
     // Validate authentication
     const authResult = await validatePlayerAuth(playerId, gameId, session_token);
     if (!authResult.valid) {
-        emitError(socket, authResult.error, gameId);
+        emitError(io, socket, authResult.error, gameId);
         return;
     }
 
     // Validate input
     const validationError = validateAnswerData(data);
     if (validationError) {
-        emitError(socket, validationError, gameId);
+        emitError(io, socket, validationError, gameId);
         return;
     }
 
@@ -198,7 +198,7 @@ const handleSendAnswer = async (socket, io, data) => {
         const savedAnswer = await saveAnswerToDatabase(aiData);
         answers.push(storedAnswer, savedAnswer);
         if (!judgeId) {
-            emitError(socket, 'No judge assigned to this game', gameId);
+            emitError(io, socket, 'No judge assigned to this game', gameId);
             return;
         }
         // Send answers to judge
@@ -297,7 +297,7 @@ const notifyJudge = async (io, gameId, judgeId, questionId, answers) => {
  * @param {string} gameId
  */
 const emitSuccess = (socket, gameId) => {
-    socket.emit('send-answer-success', {
+    socket.emit('answer-sent-success', {
         message: 'Answer submitted successfully',
         gameId,
         timestamp: Date.now(),
@@ -310,8 +310,8 @@ const emitSuccess = (socket, gameId) => {
  * @param {string} errorMessage
  * @param {string} gameId
  */
-const emitError = (socket, errorMessage, gameId) => {
-    socket.emit('send-answer-error', {
+const emitError = (io, socket, errorMessage, gameId) => {
+    io.to(socket).emit('send-answer-error', {
         error: errorMessage,
         gameId,
         timestamp: Date.now(),
