@@ -70,7 +70,6 @@ exports.getJudgeSummary = async (req, res) => {
     try {
         const { judgeId, gameId } = req.params;
         const response = await dbService.getJudgeSummary(judgeId, gameId, req.headers);
-        console.log('getJudgeSummary response:', response);
         res.json(response);
     } catch (error) {
         console.error('Error fetching judge summary:', error);
