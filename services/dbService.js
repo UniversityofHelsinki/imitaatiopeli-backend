@@ -71,17 +71,9 @@ exports.getPlayroomJudgePlayerPairs = async (gameId) => {
     return await dbClient(url);
 };
 
-exports.getJudgeSummary = async (judgeId, gameId, headers) => {
+exports.getJudgeSummary = async (judgeId, gameId) => {
     const url = `/api/judge/summary/${judgeId}/${gameId}`;
-
-    return await dbClient(url, {
-        headers: {
-            'x-player-session-token': headers['x-player-session-token'],
-            'x-player-nickname': headers['x-player-nickname'],
-            'x-player-id': headers['x-player-id'],
-            'x-player-game-id': headers['x-player-game-id']
-        }
-    });
+    return await dbClient(url);
 };
 
 exports.dbClient = dbClient;
