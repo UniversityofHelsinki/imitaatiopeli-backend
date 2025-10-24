@@ -76,3 +76,14 @@ exports.getJudgeSummary = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch judge summary' });
     }
 };
+
+exports.saveJudgeFinalGuess = async (req, res) => {
+    try {
+        const response = await dbService.saveJudgeFinalGuess(req, res);
+        res.json(response);
+    } catch (error) {
+        console.error('Error saving final judge guess:', error);
+        res.status(500).json({ error: 'Failed to save final judge guess' });
+    }
+};
+

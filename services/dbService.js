@@ -76,4 +76,21 @@ exports.getJudgeSummary = async (judgeId, gameId) => {
     return await dbClient(url);
 };
 
+exports.saveJudgeFinalGuess = async (req, res) => {
+    const url = `/api/judge/finalGuess`;
+    try {
+        const result = await dbClient(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(req.body),
+        });
+        return res.json(result);
+    } catch (error) {
+        logger.error('Error saving final judge guess:', error);
+        return res.status(500).json({ error: 'Failed to save final judge guess' });
+    }
+};
+
 exports.dbClient = dbClient;
