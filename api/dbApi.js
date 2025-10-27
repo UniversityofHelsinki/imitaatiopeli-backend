@@ -79,7 +79,14 @@ exports.getJudgeSummary = async (req, res) => {
 
 exports.saveJudgeFinalGuess = async (req, res) => {
     try {
-        const response = await dbService.saveJudgeFinalGuess(req, res);
+        const { gameId, judgeId } = req.params;
+        const { guessedPlayerId, confidence, argument } = req.body;
+        const response = await dbService.saveJudgeFinalGuess(gameId, judgeId, {
+            guessedPlayerId,
+            confidence,
+            argument
+        }, req.headers);
+
         res.json(response);
     } catch (error) {
         console.error('Error saving final judge guess:', error);
