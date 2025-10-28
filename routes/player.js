@@ -57,4 +57,13 @@ exports.player = (router) => {
         }
         res.status(500).end();
     });
+
+    router.get('/games/:id/player/:playerId/answersForRatingForm', async (req, res) => {
+        const { id, playerId } = req.params;
+        const response = await dbClient(`/api/game/${id}/player/${playerId}/answersForRatingForm`);
+        if (response) {
+            res.status(200).json(response);
+        }
+        res.status(500).end();
+    });
 };
