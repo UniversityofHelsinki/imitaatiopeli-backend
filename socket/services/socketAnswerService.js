@@ -179,6 +179,7 @@ const handleSendAnswer = async (socket, io, data) => {
         const aiPlayer = await getAIPlayer();
         const aiPlayerId = aiPlayer.player_id.toString();
         const judgeId = await getGameJudge(playerId, gameId);
+        const questionCount = await getQuestionCountByJudgeIdAndGameId(judgeId, gameId);
         const aIAnswer = await getAIAnswer(
             gameConfiguration,
             answer,
@@ -196,6 +197,8 @@ const handleSendAnswer = async (socket, io, data) => {
             is_pretender: true,
         };
         const savedAnswer = await saveAnswerToDatabase(aiData);
+        storedAnswer.questionCount = questionCount;
+        savedAnswer.questionCount = questionCount;
         answers.push(storedAnswer, savedAnswer);
         if (!judgeId) {
             emitError(io, socket, 'No judge assigned to this game', gameId);
@@ -272,6 +275,19 @@ const getGameJudge = async (playerId, gameId) => {
     } catch (error) {
         logger.error(`Failed to fetch judge for game ${gameId}:`, error);
         throw new Error('Failed to retrieve game judge information');
+    }
+};
+
+const getQuestionCountByJudgeIdAndGameId = async (judgeId, gameId) => {
+    try {
+        const response = await dbClient(`/api/game/${gameId}/judge/${judgeId}/questionCount`);
+        return response;
+    } catch (error) {
+        logger.error(
+            `Failed to fetch question count for judge ${judgeId} in game ${gameId}:`,
+            error,
+        );
+        throw new Error('Failed to retrieve question count');
     }
 };
 
