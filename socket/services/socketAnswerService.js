@@ -143,6 +143,15 @@ const validatePlayerAuth = async (playerId, gameId, session_token) => {
 };
 
 /**
+ * Shuffle answers randomly
+ * @param {Array} array - Array of answers
+ **/
+
+const shuffle = (array) => {
+    return array.sort(() => Math.random() - 0.5);
+};
+
+/**
  * Handle answer submission from player
  * @param {Object} socket - Socket instance
  * @param {Object} io - IO instance
@@ -196,7 +205,9 @@ const handleSendAnswer = async (socket, io, data) => {
             is_pretender: true,
         };
         const savedAnswer = await saveAnswerToDatabase(aiData);
-        answers.push(storedAnswer, savedAnswer);
+
+        answers.push(...shuffle([storedAnswer, savedAnswer]));
+
         if (!judgeId) {
             emitError(io, socket, 'No judge assigned to this game', gameId);
             return;
