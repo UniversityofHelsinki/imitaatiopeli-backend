@@ -56,9 +56,9 @@ const extractConfiguration = (gameConfiguration, playerAnswer) => {
     } = configuration;
 
     const languageSuffix = {
-        fi: `vastauksen tulisi olla noin ${playerAnswer.length} merkkiä pitkä eikä ylittää koskaan 255 merkkiä. Vastaa suomen kielellä.`,
-        en: `the answer should be around ${playerAnswer.length} characters and never exceed 255 characters. Answer in English language.`,
-        swe: `svaret bör vara cirka ${playerAnswer.length} tecken långt och får aldrig överstiga 255 tecken. Svara på svenska.`,
+        fi: `vastauksen tulisi olla noin ${playerAnswer.length} merkkiä pitkä eikä ylittää koskaan 500 merkkiä. Vastaa suomen kielellä.`,
+        en: `the answer should be around ${playerAnswer.length} characters and never exceed 500 characters. Answer in English language.`,
+        swe: `svaret bör vara cirka ${playerAnswer.length} tecken långt och får aldrig överstiga 50 tecken. Svara på svenska.`,
     };
 
     const suffix = languageSuffix[languageCode] || languageSuffix.en;
