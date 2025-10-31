@@ -188,11 +188,15 @@ const handleSendAnswer = async (socket, io, data) => {
             questionId,
             gameId,
         );
+
+        const safeAiResponse =
+            aIAnswer?.answer.length > 500 ? aIAnswer?.answer.slice(0, 500) : aIAnswer?.answer;
+
         const aiData = {
             questionId,
             gameId,
             playerId: aiPlayerId,
-            answer: aIAnswer.answer,
+            answer: safeAiResponse,
             is_pretender: true,
         };
         const savedAnswer = await saveAnswerToDatabase(aiData);
