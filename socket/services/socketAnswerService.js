@@ -56,9 +56,9 @@ const extractConfiguration = (gameConfiguration, playerAnswer) => {
     } = configuration;
 
     const languageSuffix = {
-        fi: `vastauksen tulisi olla noin ${playerAnswer.length} merkkiä pitkä eikä ylittää koskaan 255 merkkiä. Vastaa suomen kielellä.`,
-        en: `the answer should be around ${playerAnswer.length} characters and never exceed 255 characters. Answer in English language.`,
-        swe: `svaret bör vara cirka ${playerAnswer.length} tecken långt och får aldrig överstiga 255 tecken. Svara på svenska.`,
+        fi: `vastauksen tulisi olla noin ${playerAnswer.length} merkkiä pitkä eikä ylittää koskaan 500 merkkiä. Vastaa suomen kielellä.`,
+        en: `the answer should be around ${playerAnswer.length} characters and never exceed 500 characters. Answer in English language.`,
+        swe: `svaret bör vara cirka ${playerAnswer.length} tecken långt och får aldrig överstiga 50 tecken. Svara på svenska.`,
     };
 
     const suffix = languageSuffix[languageCode] || languageSuffix.en;
@@ -188,6 +188,7 @@ const handleSendAnswer = async (socket, io, data) => {
         const aiPlayer = await getAIPlayer();
         const aiPlayerId = aiPlayer.player_id.toString();
         const judgeId = await getGameJudge(playerId, gameId);
+        const questionCount = await getQuestionCountByJudgeIdAndGameId(judgeId, gameId);
         const aIAnswer = await getAIAnswer(
             gameConfiguration,
             answer,
@@ -197,14 +198,21 @@ const handleSendAnswer = async (socket, io, data) => {
             questionId,
             gameId,
         );
+
+        const safeAiResponse =
+            aIAnswer?.answer.length > 500 ? aIAnswer?.answer.slice(0, 500) : aIAnswer?.answer;
+
         const aiData = {
             questionId,
             gameId,
             playerId: aiPlayerId,
-            answer: aIAnswer.answer,
+            answer: safeAiResponse,
             is_pretender: true,
         };
         const savedAnswer = await saveAnswerToDatabase(aiData);
+        storedAnswer.questionCount = questionCount;
+        savedAnswer.questionCount = questionCount;
+        answers.push(storedAnswer, savedAnswer);
 
         answers.push(...shuffle([storedAnswer, savedAnswer]));
 
@@ -283,6 +291,19 @@ const getGameJudge = async (playerId, gameId) => {
     } catch (error) {
         logger.error(`Failed to fetch judge for game ${gameId}:`, error);
         throw new Error('Failed to retrieve game judge information');
+    }
+};
+
+const getQuestionCountByJudgeIdAndGameId = async (judgeId, gameId) => {
+    try {
+        const response = await dbClient(`/api/game/${gameId}/judge/${judgeId}/questionCount`);
+        return response;
+    } catch (error) {
+        logger.error(
+            `Failed to fetch question count for judge ${judgeId} in game ${gameId}:`,
+            error,
+        );
+        throw new Error('Failed to retrieve question count');
     }
 };
 
