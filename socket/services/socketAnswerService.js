@@ -185,6 +185,8 @@ const handleSendAnswer = async (socket, io, data) => {
         logger.info(`Answer saved to database for player ${playerId}`);
         const question = await getPlayerQuestionByQuestionIdAndGameId(questionId, gameId);
         const gameConfiguration = await getGameConfigurationById(gameId);
+        console.log('Game configuration:', gameConfiguration);
+
         const aiPlayer = await getAIPlayer();
         const aiPlayerId = aiPlayer.player_id.toString();
         const judgeId = await getGameJudge(playerId, gameId);
@@ -214,7 +216,11 @@ const handleSendAnswer = async (socket, io, data) => {
         savedAnswer.questionCount = questionCount;
         answers.push(storedAnswer, savedAnswer);
 
-        answers.push(...shuffle([storedAnswer, savedAnswer]));
+        if (gameConfiguration?.configuration.answer_randomization) {
+            answers = shuffle([storedAnswer, savedAnswer]);
+        } else {
+            answers = [storedAnswer, savedAnswer];
+        }
 
         if (!judgeId) {
             emitError(io, socket, 'No judge assigned to this game', gameId);
