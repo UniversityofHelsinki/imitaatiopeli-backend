@@ -18,7 +18,11 @@ exports.admin = (router) => {
         try {
             const response = await dbClient('/api/game/create', {
                 method: 'POST',
-                body: JSON.stringify(body),
+                body: JSON.stringify({
+                    configuration: req.body.configuration,
+                    gameCode: crypto.randomUUID(),
+                    userId: req.user.eppn,
+                }),
                 headers: {
                     'Content-Type': 'application/json',
                 },

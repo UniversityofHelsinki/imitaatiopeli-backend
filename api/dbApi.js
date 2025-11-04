@@ -94,3 +94,14 @@ exports.saveJudgeFinalGuess = async (req, res) => {
     }
 };
 
+exports.getUserGames = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const games = await dbService.getGamesForUser(userId);
+        res.json(games);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: 'Failed to fetch games' });
+    }
+};
+
