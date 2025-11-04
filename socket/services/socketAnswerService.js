@@ -212,8 +212,7 @@ const handleSendAnswer = async (socket, io, data) => {
         const savedAnswer = await saveAnswerToDatabase(aiData);
         storedAnswer.questionCount = questionCount;
         savedAnswer.questionCount = questionCount;
-        answers.push(storedAnswer, savedAnswer);
-
+        //answers.push(storedAnswer, savedAnswer);
         answers.push(...shuffle([storedAnswer, savedAnswer]));
 
         if (!judgeId) {
