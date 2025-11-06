@@ -76,22 +76,15 @@ exports.getJudgeSummary = async (judgeId, gameId) => {
     return await dbClient(url);
 };
 
-exports.saveJudgeFinalGuess = async (gameId, judgeId, data) => {
-    const url = `/api/judge/finalGuess/${gameId}/${judgeId}`;
-    const { guessedPlayerId, confidence, argument } = data;
+exports.saveJudgeFinalGuess = async (data) => {
+    const url = `/api/judge/finalGuess`;
     try {
         return await dbClient(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                gameId,
-                judgeId,
-                guessedPlayerId,
-                confidence,
-                argument
-            }),
+            body: JSON.stringify(data),
         });
     } catch (error) {
         logger.error('Error saving final judge guess:', error);
