@@ -66,16 +66,6 @@ exports.admin = (router) => {
         }
     });
 
-    router.get('/games', async (req, res) => {
-        const { user } = req.params;
-        try {
-            const response = await dbClient('/api/games');
-            return res.json(response);
-        } catch (error) {
-            return res.status(500).json(error.message);
-        }
-    });
-
     router.put('/game/:id/start', async (req, res) => {
         const { id } = req.params;
         try {
@@ -134,4 +124,18 @@ exports.admin = (router) => {
     router.post('/testAIPrompt', azureApi.testAIPrompt);
 
     router.get('/languageModels', dbApi.getAllLanguageModels);
+
+    router.get('/games', async (req, res) => {
+        try {
+            const games = await dbClient('/api/games',  {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'eppn': req.user.eppn
+                },
+            });
+            res.json(games);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    });
 };
