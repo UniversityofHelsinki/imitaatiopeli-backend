@@ -70,14 +70,13 @@ const gameSummary = async (io, socket, game) => {
     );
 
     const pairs = await dbClient(`/api/players/pairs/${game}/${judge}`);
-    const answerer = pairs.find((pair) => pair.judge_id === judge).player_id;
-    const answererSocket = socketUserService.getUserSockets(Number.parseInt(answerer))[0]?.socketId;
+    const answerer = pairs.find((pair) => pair.judge_id === judge)?.player_id;
+    const answererSockets = socketUserService.getUserSockets(Number.parseInt(answerer)) || [];
 
     const summary = await getJudgeSummary(judge, game);
+
     socket.emit('judging-summary', summary);
-    io.to(answererSocket).emit('no-more-answers', ['asdfasdf']);
-    console.log('summary', summary);
-    return [];
+    answererSockets.forEach((s) => io.to(s.socketId).emit('no-more-answers', true));
 };
 
 module.exports = {
