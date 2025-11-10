@@ -1,6 +1,8 @@
 const { logger } = require('../../logger');
+const { getJudgeSummary } = require('../../services/dbService');
 const socketGameService = require('../services/socketGameService');
 const socketUserService = require('../services/socketUserService');
+const { dbClient } = require('../../services/dbService');
 
 const handleStartGame = (socket, data, io) => {
     const { gameId } = data;
@@ -55,7 +57,31 @@ const sendAnswersToJudge = (io, gameId, judgeId, questionId, answers) => {
     });
 };
 
+const endJudging = (data) => {
+    console.log('end-judging', data);
+};
+
+const gameSummary = async (io, socket, game) => {
+    const sockets = [...socketUserService.getConnectedUsers().values()];
+
+    const source = sockets.find((s) => [...s.sockets].find((ss) => ss.socketId === socket.id));
+    const judge = Number.parseInt(
+        [...socketUserService.getConnectedUsers().entries()].find(([_, o]) => o === source)[0],
+    );
+
+    const pairs = await dbClient(`/api/players/pairs/${game}/${judge}`);
+    const answerer = pairs.find((pair) => pair.judge_id === judge)?.player_id;
+    const answererSockets = socketUserService.getUserSockets(Number.parseInt(answerer)) || [];
+
+    const summary = await getJudgeSummary(judge, game);
+
+    socket.emit('judging-summary', summary);
+    answererSockets.forEach((s) => io.to(s.socketId).emit('no-more-answers', true));
+};
+
 module.exports = {
     handleStartGame,
     sendAnswersToJudge,
+    endJudging,
+    gameSummary,
 };

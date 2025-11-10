@@ -33,6 +33,11 @@ const handleConnection = (io) => {
         socket.on('send-guess-to-answer', async (data) => {
             await socketPlayerGuessHandler.handleSendGuessToAnswer(socket, data);
         });
+
+        socket.on('end-judging', async ({ game, rating }) => {
+            await socketPlayerGuessHandler.handleSendGuessToAnswer(socket, rating);
+            await gameHandler.gameSummary(io, socket, game);
+        });
     };
 };
 

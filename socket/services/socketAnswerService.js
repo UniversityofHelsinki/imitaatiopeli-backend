@@ -13,6 +13,15 @@ const getAIPlayer = async () => {
         throw new Error('Failed to retrieve AI player');
     }
 };
+const getLanguageSuffix = async (languageCode) => {
+    try {
+        console.log('/api/languageSuffix/' + languageCode);
+        return await dbClient(`/api/languageSuffix/${languageCode}`);
+    } catch (error) {
+        logger.error(`Failed to fetch language suffix for ${languageCode}:`, error);
+        return null;
+    }
+};
 
 const getAIAnswer = async (
     gameConfiguration,
@@ -24,7 +33,7 @@ const getAIAnswer = async (
     gameId,
 ) => {
     try {
-        const config = extractConfiguration(gameConfiguration, playerAnswer);
+        const config = await extractConfiguration(gameConfiguration, playerAnswer);
         const messageBody = await buildConversationMessages(
             judgeId,
             aiId,
@@ -46,7 +55,7 @@ const getAIAnswer = async (
     }
 };
 
-const extractConfiguration = (gameConfiguration, playerAnswer) => {
+const extractConfiguration = async (gameConfiguration, playerAnswer) => {
     const { configuration, languageModel } = gameConfiguration;
     const {
         ai_prompt: prompt,
@@ -55,14 +64,12 @@ const extractConfiguration = (gameConfiguration, playerAnswer) => {
         language_used: languageCode,
     } = configuration;
 
-    const languageSuffix = {
-        fi: `vastauksen tulisi olla noin ${playerAnswer.length} merkkiä pitkä eikä ylittää koskaan 500 merkkiä. Vastaa suomen kielellä.`,
-        en: `the answer should be around ${playerAnswer.length} characters and never exceed 500 characters. Answer in English language.`,
-        swe: `svaret bör vara cirka ${playerAnswer.length} tecken långt och får aldrig överstiga 50 tecken. Svara på svenska.`,
-    };
+    let suffixData = await getLanguageSuffix(languageCode);
 
-    const suffix = languageSuffix[languageCode] || languageSuffix.en;
+    const suffix = suffixData?.suffix_template.replace('{length}', playerAnswer.length);
+
     const modifiedPrompt = `${prompt}, ${suffix}`;
+
     return {
         modifiedPrompt,
         temperature,
@@ -185,8 +192,6 @@ const handleSendAnswer = async (socket, io, data) => {
         logger.info(`Answer saved to database for player ${playerId}`);
         const question = await getPlayerQuestionByQuestionIdAndGameId(questionId, gameId);
         const gameConfiguration = await getGameConfigurationById(gameId);
-        console.log('Game configuration:', gameConfiguration);
-
         const aiPlayer = await getAIPlayer();
         const aiPlayerId = aiPlayer.player_id.toString();
         const judgeId = await getGameJudge(playerId, gameId);
