@@ -93,14 +93,8 @@ exports.saveJudgeFinalGuess = async (data) => {
 };
 
 exports.getGamesForUser = async (eppn) => {
-    const url = `/api/games`;
-    return await dbClient(url, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            eppn: eppn,
-        },
-    });
+    const url = `/api/games/${eppn}`;
+    return await dbClient(url);
 };
 
 exports.dbClient = dbClient;

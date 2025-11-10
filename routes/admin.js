@@ -125,17 +125,5 @@ exports.admin = (router) => {
 
     router.get('/languageModels', dbApi.getAllLanguageModels);
 
-    router.get('/games', async (req, res) => {
-        try {
-            const games = await dbClient('/api/games',  {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'eppn': req.user.eppn
-                },
-            });
-            res.json(games);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    });
+    router.get('/games', dbApi.getUserGames);
 };
