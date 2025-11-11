@@ -130,4 +130,14 @@ exports.admin = (router) => {
     router.post('/testAIPrompt', azureApi.testAIPrompt);
 
     router.get('/languageModels', dbApi.getAllLanguageModels);
+
+    router.get('/game/:id/getPlayroomJudgePlayerPairs', async (req, res) => {
+        const { id } = req.params;
+        const response = await dbApi.getPlayroomJudgePlayerPairs(id);
+        if (response) {
+            console.log('resp:', JSON.stringify(response));
+            res.json(response);
+        }
+        res.status(500).end();
+    });
 };
