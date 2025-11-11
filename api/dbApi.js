@@ -42,6 +42,15 @@ exports.getJudgeById = async (playerId, gameId) => {
     }
 };
 
+exports.getPlayroomJudgePlayerPairs = async (gameId) => {
+    try {
+        const response = await dbService.getPlayroomJudgePlayerPairs(gameId);
+        return response;
+    } catch (err) {
+        return null;
+    }
+};
+
 exports.savePlayer = async (req, res) => {
     try {
         const response = await dbService.savePlayer(req, res);

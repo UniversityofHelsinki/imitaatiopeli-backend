@@ -67,7 +67,7 @@ exports.saveQuestion = async (questionData) => {
 };
 
 exports.getPlayroomJudgePlayerPairs = async (gameId) => {
-    const url = `/public/games/${gameId}/playroomPlayerPairs`;
+    const url = `/api/games/${gameId}/playroomPlayerPairs`;
     return await dbClient(url);
 };
 
