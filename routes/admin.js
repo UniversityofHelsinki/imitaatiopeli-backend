@@ -18,7 +18,11 @@ exports.admin = (router) => {
         try {
             const response = await dbClient('/api/game/create', {
                 method: 'POST',
-                body: JSON.stringify(body),
+                body: JSON.stringify({
+                    configuration: req.body.configuration,
+                    gameCode: crypto.randomUUID(),
+                    userId: req.user.eppn,
+                }),
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -56,16 +60,6 @@ exports.admin = (router) => {
                     'content-type': 'application/json',
                 },
             });
-            return res.json(response);
-        } catch (error) {
-            return res.status(500).json(error.message);
-        }
-    });
-
-    router.get('/games', async (req, res) => {
-        const { user } = req.params;
-        try {
-            const response = await dbClient('/api/games');
             return res.json(response);
         } catch (error) {
             return res.status(500).json(error.message);
@@ -140,4 +134,6 @@ exports.admin = (router) => {
         }
         res.status(500).end();
     });
+
+    router.get('/games', dbApi.getUserGames);
 };
