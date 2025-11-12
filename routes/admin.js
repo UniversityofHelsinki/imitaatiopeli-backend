@@ -90,6 +90,18 @@ exports.admin = (router) => {
         }
     });
 
+    router.put('/game/:id/endongoing', async (req, res) => {
+        const { id } = req.params;
+        try {
+            await dbClient(`/api/game/${id}/endongoing`, {
+                method: 'put',
+            });
+            return res.status(200).end();
+        } catch (error) {
+            return res.status(500).json(error.message);
+        }
+    });
+
     router.get('/games/:id/lobby', async (req, res) => {
         const { id } = req.params;
 

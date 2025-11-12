@@ -32,6 +32,34 @@ const handleStartGame = (socket, data, io) => {
     }
 };
 
+const handleEndGame = (socket, data, io) => {
+    const { gameId } = data;
+    logger.info(`Game end requested for gameId: ${gameId} by socket: ${socket.id}`);
+
+    try {
+        const result = socketGameService.endGame(gameId, io, socket.id);
+
+        if (!result.success) {
+            socket.emit('end-game-error', {
+                gameId: parseInt(gameId, 10),
+                error: result.error,
+            });
+            return;
+        }
+
+        socket.emit('end-game-success', {
+            gameId: parseInt(gameId, 10),
+            message: `Game ended successfully. ${result.playersNotified} players notified.`,
+        });
+    } catch (error) {
+        logger.error(`Error ending game ${gameId}:`, error);
+        socket.emit('end-game-error', {
+            gameId: parseInt(gameId, 10),
+            error: 'Failed to end game',
+        });
+    }
+};
+
 const sendAnswersToJudge = (io, gameId, judgeId, questionId, answers) => {
     const judgeSockets = socketUserService.getUserSockets(judgeId);
     console.log('judgeId type:', typeof judgeId, 'value:', judgeId); // Add this line
@@ -81,6 +109,7 @@ const gameSummary = async (io, socket, game) => {
 
 module.exports = {
     handleStartGame,
+    handleEndGame,
     sendAnswersToJudge,
     endJudging,
     gameSummary,
