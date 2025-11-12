@@ -126,4 +126,6 @@ exports.admin = (router) => {
     router.get('/languageModels', dbApi.getAllLanguageModels);
 
     router.get('/games', dbApi.getUserGames);
+
+    router.get('/games/:gameId/summary', dbApi.getAdminGameSummary);
 };

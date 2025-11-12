@@ -97,4 +97,10 @@ exports.getGamesForUser = async (eppn) => {
     return await dbClient(url);
 };
 
+exports.getAdminGameSummary = async (eppn, gameId) => {
+    const url = `/api/games/${gameId}/summary`;
+    console.log('dbService eppn', eppn);
+    console.log('dbService url', url);
+    return await dbClient(url);
+};
 exports.dbClient = dbClient;
