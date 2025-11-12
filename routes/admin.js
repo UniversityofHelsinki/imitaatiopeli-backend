@@ -3,6 +3,8 @@ const { dbClient } = require('../services/dbService');
 const { azureClient } = require('../services/azureService');
 const azureApi = require('../api/azureApi');
 const dbApi = require('../api/dbApi');
+const { createWorkbookFromGameData, setExcelDownloadHeaders } = require('../services/excelService');
+
 exports.admin = (router) => {
     router.get('/user', userApi.getLoggedUser);
 
@@ -124,6 +126,16 @@ exports.admin = (router) => {
     router.post('/testAIPrompt', azureApi.testAIPrompt);
 
     router.get('/languageModels', dbApi.getAllLanguageModels);
+
+    router.get('/game/:id/getPlayroomJudgePlayerPairs', async (req, res) => {
+        const { id } = req.params;
+        const response = await dbApi.getPlayroomJudgePlayerPairs(id);
+        if (response) {
+            console.log('resp:', JSON.stringify(response));
+            res.json(response);
+        }
+        res.status(500).end();
+    });
 
     router.get('/games', dbApi.getUserGames);
 
