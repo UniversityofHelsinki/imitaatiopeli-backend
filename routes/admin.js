@@ -3,6 +3,8 @@ const { dbClient } = require('../services/dbService');
 const { azureClient } = require('../services/azureService');
 const azureApi = require('../api/azureApi');
 const dbApi = require('../api/dbApi');
+const { createWorkbookFromGameData, setExcelDownloadHeaders } = require('../services/excelService');
+
 exports.admin = (router) => {
     router.get('/user', userApi.getLoggedUser);
 
