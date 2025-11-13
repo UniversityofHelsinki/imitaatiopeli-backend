@@ -139,5 +139,10 @@ exports.admin = (router) => {
 
     router.get('/games', dbApi.getUserGames);
 
-    router.get('/games/:gameId/summary', dbApi.getAdminGameSummary);
+    router.get('/games/:gameId/summary', async (req, res) => {
+        const { gameId } = req.params;
+        const eppn = req.user.eppn;
+        await dbApi.getAdminGameSummary({ ...req, params: { gameId, eppn }}, res);
+    });
+
 };
