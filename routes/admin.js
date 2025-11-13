@@ -137,8 +137,6 @@ exports.admin = (router) => {
         res.status(500).end();
     });
 
-    router.get('/games', dbApi.getUserGames);
-
     router.get('/games/:id/gameDataToExcel', async (req, res) => {
         const { id } = req.params;
 
@@ -159,4 +157,6 @@ exports.admin = (router) => {
             return res.status(500).json({ error: error.message });
         }
     });
+
+    router.get('/games', dbApi.getUserGames);
 };
