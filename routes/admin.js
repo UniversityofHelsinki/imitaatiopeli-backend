@@ -137,6 +137,27 @@ exports.admin = (router) => {
         res.status(500).end();
     });
 
+    router.get('/games/:id/gameDataToExcel', async (req, res) => {
+        const { id } = req.params;
+
+        try {
+            const result = await dbClient(`/api/game/${id}/gameDataToExcel`);
+
+            if (!result || result.length === 0) {
+                return res.status(404).json({ error: 'No data found' });
+            }
+
+            const workbook = createWorkbookFromGameData(result);
+            setExcelDownloadHeaders(res, id);
+
+            await workbook.xlsx.write(res);
+            res.end();
+        } catch (error) {
+            console.error('Error generating Excel:', error);
+            return res.status(500).json({ error: error.message });
+        }
+    });
+
     router.get('/games', dbApi.getUserGames);
 
     router.get('/games/:gameId/summary', async (req, res) => {
