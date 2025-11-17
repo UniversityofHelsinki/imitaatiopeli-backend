@@ -14,10 +14,9 @@ const styleWorksheetHeader = (worksheet) => {
 const createWorkbookFromGameData = (data) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Game Data');
+    worksheet.columns = constants.EXCEL_DATA_COLUMNS;
 
-    worksheet.columns = constants.EXCEL_COLUMNS;
-
-    for (const row of data) {
+    for (const row of data.gameData) {
         worksheet.addRow({
             player: row.player,
             sequence: row.sequence === 999 ? 'Final' : row.sequence,
@@ -34,6 +33,25 @@ const createWorkbookFromGameData = (data) => {
     }
 
     styleWorksheetHeader(worksheet);
+
+    const worksheet2 = workbook.addWorksheet('Game Info');
+    worksheet2.columns = constants.EXCEL_INFO_COLUMNS;
+
+    worksheet2.addRow({
+        game_name: data.gameConfiguration?.game_name,
+        theme_description: data.gameConfiguration?.theme_description,
+        ai_prompt:
+            data.gameConfiguration?.ai_prompt +
+            ' , ' +
+            data.promptSuffixTemplate?.[0]?.suffix_template,
+        language_model: data.languageModel?.name,
+        model_temperature: data.gameConfiguration?.model_temperature,
+        is_research_game: data.gameConfiguration?.is_research_game,
+        research_description: data.gameConfiguration?.research_description,
+        instructions_for_players: data.gameConfiguration?.instructions_for_players,
+    });
+
+    styleWorksheetHeader(worksheet2);
 
     return workbook;
 };

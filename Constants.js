@@ -1,7 +1,7 @@
 const SHIBBOLETH_COOKIE_NAME = '_shibsession_';
 const ADMIN_GROUP = 'grp-imitationgame-admin';
 
-const EXCEL_COLUMNS = [
+const EXCEL_DATA_COLUMNS = [
     { header: 'Player', key: 'player', width: 10 },
     { header: 'Sequence', key: 'sequence', width: 10 },
     { header: 'Question', key: 'question', width: 40 },
@@ -15,8 +15,20 @@ const EXCEL_COLUMNS = [
     { header: 'Final Confidence', key: 'final_confidence', width: 15 },
 ];
 
+const EXCEL_INFO_COLUMNS = [
+    { header: 'Game Name', key: 'game_name', width: 10 },
+    { header: 'Theme Description', key: 'theme_description', width: 10 },
+    { header: 'AI Prompt', key: 'ai_prompt', width: 10 },
+    { header: 'Language Model', key: 'language_model', width: 10 },
+    { header: 'Model Temperature', key: 'model_temperature', width: 10 },
+    { header: 'Is Research Game', key: 'is_research_game', width: 10 },
+    { header: 'Research Description', key: 'research_description', width: 10 },
+    { header: 'Instructions For Players', key: 'instructions_for_players', width: 50 },
+];
+
 module.exports = {
     SHIBBOLETH_COOKIE_NAME,
     ADMIN_GROUP,
-    EXCEL_COLUMNS,
+    EXCEL_DATA_COLUMNS,
+    EXCEL_INFO_COLUMNS,
 };
