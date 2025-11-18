@@ -114,11 +114,8 @@ exports.getUserGames = async (req, res) => {
 exports.getAdminGameSummary = async (req, res) => {
     try {
         const { gameId, eppn } = req.params;
-        console.log('dbApi user', eppn);
-        console.log('dbApi gameId', gameId);
 
         const response = await dbService.getAdminGameSummary(gameId, eppn);
-        console.log('dbApi response', response);
         if (!response || response.length === 0) {
             return res.json();
         }
