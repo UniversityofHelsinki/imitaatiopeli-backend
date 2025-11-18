@@ -22,6 +22,10 @@ const handleConnection = (io) => {
             gameHandler.handleStartGame(socket, data, io);
         });
 
+        socket.on('end-game', (data) => {
+            gameHandler.handleEndGame(socket, data, io);
+        });
+
         socket.on('disconnect', () => {
             connectionHandler.handleDisconnect(socket);
         });
