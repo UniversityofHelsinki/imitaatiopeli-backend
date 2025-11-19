@@ -50,7 +50,36 @@ const startGame = (gameId, io, initiatorSocketId) => {
     };
 };
 
+const endGame = (gameId, io, initiatorSocketId) => {
+    const gameSockets = getGamePlayerSockets(gameId);
+
+    if (gameSockets.length === 0) {
+        logger.warn(`No players found for game ${gameId}`);
+        return {
+            success: false,
+            error: 'No players found for this game',
+        };
+    }
+
+    // Broadcast to all players in the game
+    gameSockets.forEach((player) => {
+        io.to(player.socketId).emit('game-ended', {
+            gameId: parseInt(gameId, 10),
+            message: 'Game has ended!',
+            startedBy: initiatorSocketId,
+        });
+    });
+
+    logger.info(`Game ${gameId} ended. Notified ${gameSockets.length} players.`);
+
+    return {
+        success: true,
+        playersNotified: gameSockets.length,
+    };
+};
+
 module.exports = {
     getGamePlayerSockets,
     startGame,
+    endGame,
 };
