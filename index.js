@@ -12,16 +12,12 @@ const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const { logger } = require('./logger');
-const crypto = require('crypto');
 const { admin } = require('./routes/admin');
 const { player } = require('./routes/player');
 const { handleConnection } = require('./socket/socketHandler');
-const sqlInjectionInPath = require('./middleware/sqlInjectionPath');
 
 const ipaddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 const port = process.env.OPENSHIFT_NODEJS_PORT || 8000;
-
-app.use(sqlInjectionInPath);
 
 app.use(compression());
 app.use(cookieParser());
