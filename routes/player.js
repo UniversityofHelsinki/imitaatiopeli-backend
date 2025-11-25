@@ -10,7 +10,8 @@ exports.player = (router) => {
 
     router.get('/games/:code', async (req, res) => {
         const { code } = req.params;
-        const response = await dbClient(`/api/game/code/${code}`);
+        const params = new URLSearchParams({ code });
+        const response = await dbClient(`/api/game/code/${params}`);
         if (response) {
             res.json(response);
         }

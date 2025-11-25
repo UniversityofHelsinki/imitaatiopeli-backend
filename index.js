@@ -16,9 +16,12 @@ const crypto = require('crypto');
 const { admin } = require('./routes/admin');
 const { player } = require('./routes/player');
 const { handleConnection } = require('./socket/socketHandler');
+const sqlInjectionInPath = require('./middleware/sqlInjectionPath');
 
 const ipaddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 const port = process.env.OPENSHIFT_NODEJS_PORT || 8000;
+
+app.use(sqlInjectionInPath);
 
 app.use(compression());
 app.use(cookieParser());
@@ -82,6 +85,13 @@ player(playerRouter);
 
 // Socket.IO connection handling
 io.on('connection', handleConnection(io));
+
+app.get('/api/test-sanitization', (req, res) => {
+    res.json({
+        originalQuery: req.query,
+        message: 'All parameters are sanitized',
+    });
+});
 
 // Start the server
 server.listen(port, ipaddress, () => {
