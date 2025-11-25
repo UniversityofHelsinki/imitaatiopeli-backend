@@ -31,8 +31,7 @@ exports.savePlayer = async (req, res) => {
 };
 
 exports.getPlayerById = async (playerId) => {
-    const params = new URLSearchParams({ playerId });
-    const url = `/api/getPlayerById?${params.toString()}`;
+    const url = `/api/getPlayerById/${playerId}`;
     return await dbClient(url);
 };
 
