@@ -86,13 +86,6 @@ player(playerRouter);
 // Socket.IO connection handling
 io.on('connection', handleConnection(io));
 
-app.get('/api/test-sanitization', (req, res) => {
-    res.json({
-        originalQuery: req.query,
-        message: 'All parameters are sanitized',
-    });
-});
-
 // Start the server
 server.listen(port, ipaddress, () => {
     logger.info(
