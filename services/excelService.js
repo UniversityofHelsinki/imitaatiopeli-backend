@@ -21,6 +21,7 @@ const createWorkbookFromGameData = (data) => {
     for (const row of data.gameData) {
         worksheet.addRow({
             nickname: row.player_name,
+            respondent: row.respondent,
             player: row.player,
             sequence: row.sequence === 999 ? 'Final' : row.sequence,
             question: row.question,
