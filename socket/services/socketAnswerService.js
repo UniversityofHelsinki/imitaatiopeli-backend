@@ -207,7 +207,7 @@ const handleSendAnswer = async (socket, io, data) => {
         );
 
         const safeAiResponse =
-            aIAnswer?.answer.length > 500 ? aIAnswer?.answer.slice(0, 500) : aIAnswer?.answer;
+            aIAnswer?.answer.length > 2000 ? aIAnswer?.answer.slice(0, 2000) : aIAnswer?.answer;
 
         const aiData = {
             questionId,
