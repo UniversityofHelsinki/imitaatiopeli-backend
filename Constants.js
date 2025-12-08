@@ -3,6 +3,7 @@ const ADMIN_GROUP = 'grp-imitationgame-admin';
 
 const EXCEL_DATA_COLUMNS = [
     { header: 'Nickname', key: 'nickname', width: 10 },
+    { header: 'Respondent', key: 'respondent', width: 10 },
     { header: 'Player', key: 'player', width: 10 },
     { header: 'Sequence', key: 'sequence', width: 10 },
     { header: 'Question', key: 'question', width: 40 },
