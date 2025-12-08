@@ -86,6 +86,17 @@ exports.getJudgeSummary = async (req, res) => {
     }
 };
 
+exports.getFinalGuessRes = async (req, res) => {
+    try {
+        const { judgeId, gameId } = req.params;
+        const response = await dbService.getFinalGuessRes(judgeId, gameId);
+        res.json(response);
+    } catch (error) {
+        console.error('Error fetching final guess:', error);
+        res.status(500).json({ error: 'Failed to fetch final guess' });
+    }
+};
+
 exports.saveJudgeFinalGuess = async (req, res) => {
     try {
         const data = req.body;
