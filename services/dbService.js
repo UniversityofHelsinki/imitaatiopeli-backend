@@ -76,6 +76,11 @@ exports.getJudgeSummary = async (judgeId, gameId) => {
     return await dbClient(url);
 };
 
+exports.getFinalGuessRes = async (judgeId, gameId) => {
+    const url = `/api/getFinalGuessRes/${judgeId}/${gameId}`;
+    return await dbClient(url);
+};
+
 exports.saveJudgeFinalGuess = async (data) => {
     const url = `/api/judge/finalGuess`;
     try {

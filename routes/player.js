@@ -7,6 +7,7 @@ exports.player = (router) => {
     router.post('/savePlayer', dbApi.savePlayer);
     router.get('/judge/summary/:judgeId/:gameId', dbApi.getJudgeSummary);
     router.post('/judge/finalGuess', dbApi.saveJudgeFinalGuess);
+    router.get('/judge/finalGuessRes/:judgeId/:gameId', dbApi.getFinalGuessRes);
 
     router.get('/games/:code', async (req, res) => {
         const { code } = req.params;
