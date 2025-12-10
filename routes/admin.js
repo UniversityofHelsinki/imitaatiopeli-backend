@@ -127,6 +127,8 @@ exports.admin = (router) => {
 
     router.get('/languageModels', dbApi.getAllLanguageModels);
 
+    router.get('/getHaveAllPlayersEndedGame/:gameId', dbApi.getHaveAllPlayersEndedGame);
+
     router.get('/game/:id/getPlayroomJudgePlayerPairs', async (req, res) => {
         const { id } = req.params;
         const response = await dbApi.getPlayroomJudgePlayerPairs(id);
@@ -163,7 +165,6 @@ exports.admin = (router) => {
     router.get('/games/:gameId/summary', async (req, res) => {
         const { gameId } = req.params;
         const eppn = req.user.eppn;
-        await dbApi.getAdminGameSummary({ ...req, params: { gameId, eppn }}, res);
+        await dbApi.getAdminGameSummary({ ...req, params: { gameId, eppn } }, res);
     });
-
 };
