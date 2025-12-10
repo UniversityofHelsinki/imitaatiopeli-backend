@@ -136,3 +136,16 @@ exports.getAdminGameSummary = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch admin game summary' });
     }
 };
+
+exports.getAllPromptTemplates = async (req, res) => {
+    try {
+        const response = await dbService.getAllPromptTemplates();
+        if (!response || response.length === 0) {
+            return res.status(404).json({ message: 'No prompt templates found' });
+        }
+        res.json(response);
+    } catch (err) {
+        console.error('Error fetching prompt templates:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};

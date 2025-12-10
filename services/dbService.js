@@ -111,4 +111,10 @@ exports.getAdminGameSummary = async (gameId, eppn) => {
     const url = `/api/games/${gameId}/${eppn}/summary`;
     return await dbClient(url);
 };
+
+exports.getAllPromptTemplates = async () => {
+    const url = `/api/promptTemplates`;
+    return await dbClient(url);
+};
+
 exports.dbClient = dbClient;
