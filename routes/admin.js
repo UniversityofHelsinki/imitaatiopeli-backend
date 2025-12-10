@@ -54,7 +54,21 @@ exports.admin = (router) => {
 
     router.put('/game/edit', async (req, res) => {
         const { body } = req;
+
+        const gameId = body?.game_id;
+        if (!gameId) {
+            return res.status(400).json({ error: 'gameId is required in request body' });
+        }
+
         try {
+            const playerCount = await dbClient(`/api/game/playercount/${gameId}`);
+            if (
+                (Array.isArray(playerCount) && playerCount.length > 0) ||
+                (!Array.isArray(playerCount) && Number(playerCount) > 0)
+            ) {
+                return res.status(400).json({ error: 'edit_game_form_error_notification' });
+            }
+
             const response = await dbClient('/api/game/edit', {
                 method: 'put',
                 body: JSON.stringify(body),
@@ -167,4 +181,6 @@ exports.admin = (router) => {
         const eppn = req.user.eppn;
         await dbApi.getAdminGameSummary({ ...req, params: { gameId, eppn } }, res);
     });
+
+    router.get('/promptTemplates', dbApi.getAllPromptTemplates);
 };

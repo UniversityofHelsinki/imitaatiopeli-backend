@@ -27,7 +27,7 @@ const handleSendGuessToAnswer = async (socket, data) => {
     const body = {
         questionId: originalQuestion.question_id,
         confidence: confidence,
-        result: guessAnswer.is_pretender,
+        result: !guessAnswer.is_pretender,
         judgeId: originalQuestion.judge_id,
         answerId: guessAnswer.answer_id,
         argument: argument,

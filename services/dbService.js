@@ -87,14 +87,19 @@ exports.getHaveAllPlayersEndedGame = async (gameId) => {
 };
 
 exports.saveJudgeFinalGuess = async (data) => {
+    const { is_pretender } = data;
     const url = `/api/judge/finalGuess`;
     try {
+        const payload = {
+            ...data,
+            is_pretender: !is_pretender,
+        };
         return await dbClient(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify(payload),
         });
     } catch (error) {
         logger.error('Error saving final judge guess:', error);
@@ -111,4 +116,10 @@ exports.getAdminGameSummary = async (gameId, eppn) => {
     const url = `/api/games/${gameId}/${eppn}/summary`;
     return await dbClient(url);
 };
+
+exports.getAllPromptTemplates = async () => {
+    const url = `/api/promptTemplates`;
+    return await dbClient(url);
+};
+
 exports.dbClient = dbClient;
