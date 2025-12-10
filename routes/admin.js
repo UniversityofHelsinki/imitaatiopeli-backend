@@ -179,4 +179,7 @@ exports.admin = (router) => {
         const eppn = req.user.eppn;
         await dbApi.getAdminGameSummary({ ...req, params: { gameId, eppn } }, res);
     });
+
+    router.get('/promptTemplates', dbApi.getAllPromptTemplates);
+
 };
