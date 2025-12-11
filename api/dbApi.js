@@ -97,6 +97,15 @@ exports.getFinalGuessRes = async (req, res) => {
     }
 };
 
+exports.getHaveAllPlayersEndedGame = async (gameId) => {
+    try {
+        return await dbService.getHaveAllPlayersEndedGame(gameId);
+    } catch (error) {
+        console.error('Error fetching if all players have ended the game:', error);
+        res.status(500).json({ error: 'Failed to fetch if all players have ended the game' });
+    }
+};
+
 exports.saveJudgeFinalGuess = async (req, res) => {
     try {
         const data = req.body;

@@ -81,6 +81,11 @@ exports.getFinalGuessRes = async (judgeId, gameId) => {
     return await dbClient(url);
 };
 
+exports.getHaveAllPlayersEndedGame = async (gameId) => {
+    const url = `/api/getHaveAllPlayersEndedGame/${gameId}`;
+    return await dbClient(url);
+};
+
 exports.saveJudgeFinalGuess = async (data) => {
     const { is_pretender } = data;
     const url = `/api/judge/finalGuess`;
