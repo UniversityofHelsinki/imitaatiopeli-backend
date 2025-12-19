@@ -16,8 +16,6 @@ const createWorkbookFromGameData = (data) => {
     const worksheet = workbook.addWorksheet('Game Data');
     worksheet.columns = constants.EXCEL_DATA_COLUMNS;
 
-    console.log(data.gameData);
-
     for (const row of data.gameData) {
         worksheet.addRow({
             nickname: row.player_name,
