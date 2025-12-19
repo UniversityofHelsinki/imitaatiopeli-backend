@@ -53,7 +53,7 @@ const getUserSockets = (userId) => {
 const isUserConnected = (userId) => {
     const userIdNum = typeof userId === 'string' ? parseInt(userId, 10) : userId;
     const userData = connectedUsers.get(userIdNum);
-    return userData && userData.sockets.size > 0;
+    return !!(userData && userData.sockets.size > 0);
 };
 
 const getConnectedUsers = () => {

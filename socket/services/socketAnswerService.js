@@ -239,7 +239,7 @@ const handleSendAnswer = async (socket, io, data) => {
         emitSuccess(socket, gameId);
     } catch (error) {
         logger.error(`Failed to process answer for player ${playerId} in game ${gameId}:`, error);
-        emitError(socket, getErrorMessage(error), gameId);
+        emitError(io, socket, getErrorMessage(error), gameId);
     }
 };
 
