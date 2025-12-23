@@ -174,6 +174,21 @@ exports.admin = (router) => {
         }
     });
 
+    router.get('/games/:id/gameConfiguration', async (req, res) => {
+        const { id } = req.params;
+        try {
+            const result = await dbClient(`/api/games/${id}/gameConfiguration`);
+
+            if (!result || result.length === 0) {
+                return res.status(404).json({ error: 'No data found' });
+            }
+            res.json(result);
+        } catch (error) {
+            console.error('Error reading gameConfiguration:', error);
+            return res.status(500).json({ error: error.message });
+        }
+    });
+
     router.get('/games', dbApi.getUserGames);
 
     router.get('/games/:gameId/summary', async (req, res) => {
