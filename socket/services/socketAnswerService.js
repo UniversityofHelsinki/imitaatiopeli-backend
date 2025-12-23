@@ -181,6 +181,22 @@ const handleSendAnswer = async (socket, io, data) => {
         return;
     }
 
+    //Yhteen kysymykseen voi liittyä vain kaksi vastausta (ai ja ihminen. Ei saa talentaa enempää vastauksia,
+    //anna fronttiin herja, jossa pyydetään virkistämään selain)
+    try {
+        const answerCountPerQuestion = await dbClient(
+            `api/getAnswerCountByGameIdQuestionId/${gameId}/${questionId}`,
+        );
+        const count = answerCountPerQuestion.count;
+        if (Number(count) >= 2) {
+            emitError(io, socket, "You've already answered this question, do refresh page", gameId);
+            return;
+        }
+    } catch (error) {
+        emitError(io, socket, 'Failed to read answerCountByGameIdQuestionId', gameId);
+        return;
+    }
+
     logger.info(`Processing answer from player ${playerId} for game ${gameId}`, {
         questionId,
         answerLength: answer.length,
