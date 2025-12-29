@@ -188,8 +188,8 @@ const handleSendAnswer = async (socket, io, data) => {
             `api/getAnswerCountByGameIdQuestionId/${gameId}/${questionId}`,
         );
         const count = answerCountPerQuestion.count;
-        if (Number(count) >= 2) {
-            emitError(io, socket, "You've already answered this question, do refresh page", gameId);
+        if (Number(count) > 0) {
+            emitError(io, socket, 'judge_messenger_already_answered', gameId);
             return;
         }
     } catch (error) {
@@ -370,7 +370,7 @@ const emitSuccess = (socket, gameId) => {
  * @param {string} gameId
  */
 const emitError = (io, socket, errorMessage, gameId) => {
-    io.to(socket).emit('send-answer-error', {
+    socket.emit('answer-sent-error', {
         error: errorMessage,
         gameId,
         timestamp: Date.now(),

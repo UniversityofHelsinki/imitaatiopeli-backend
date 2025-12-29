@@ -44,6 +44,9 @@ describe('socketAnswerService', () => {
             // Setup mocks
             dbService.getPlayerById.mockResolvedValue({ session_token: 'valid-token' });
             dbService.dbClient.mockImplementation((url) => {
+                if (url === 'api/getAnswerCountByGameIdQuestionId/10/100') {
+                    return Promise.resolve({ count: 0 });
+                }
                 if (url === '/api/game/question/100/10')
                     return Promise.resolve({ question_text: 'Q?' });
                 if (url === '/api/game/10')
@@ -79,10 +82,12 @@ describe('socketAnswerService', () => {
 
             await handleSendAnswer(mockSocket, mockIo, validData);
 
-            expect(mockIo.emit).toHaveBeenCalledWith(
-                'send-answer-error',
+            expect(mockSocket.emit).toHaveBeenCalledWith(
+                'answer-sent-error',
                 expect.objectContaining({
                     error: 'Access denied. Insufficient permissions.',
+                    gameId: validData.gameId,
+                    timestamp: expect.any(Number),
                 }),
             );
         });
@@ -92,25 +97,35 @@ describe('socketAnswerService', () => {
 
             await handleSendAnswer(mockSocket, mockIo, { ...validData, answer: '' });
 
-            expect(mockIo.emit).toHaveBeenCalledWith(
-                'send-answer-error',
+            expect(mockSocket.emit).toHaveBeenCalledWith(
+                'answer-sent-error',
                 expect.objectContaining({
                     error: 'Answer is required and must be a non-empty string',
+                    gameId: validData.gameId,
+                    timestamp: expect.any(Number),
                 }),
             );
         });
 
         it('should handle errors during processing and sanitize database errors', async () => {
             dbService.getPlayerById.mockResolvedValue({ session_token: 'valid-token' });
-            dbService.dbClient.mockRejectedValue(new Error('Database error'));
+            // Let the initial count check pass, then fail a later DB call
+            dbService.dbClient.mockImplementation((url) => {
+                if (url === 'api/getAnswerCountByGameIdQuestionId/10/100') {
+                    return Promise.resolve({ count: 0 });
+                }
+                // Cause a failure during processing to trigger the generic error path
+                return Promise.reject(new Error('Database error'));
+            });
 
             await handleSendAnswer(mockSocket, mockIo, validData);
 
-            expect(mockIo.to).toHaveBeenCalledWith(mockSocket);
-            expect(mockIo.emit).toHaveBeenCalledWith(
-                'send-answer-error',
+            expect(mockSocket.emit).toHaveBeenCalledWith(
+                'answer-sent-error',
                 expect.objectContaining({
                     error: 'Unable to process your answer at this time. Please try again.',
+                    gameId: validData.gameId,
+                    timestamp: expect.any(Number),
                 }),
             );
         });

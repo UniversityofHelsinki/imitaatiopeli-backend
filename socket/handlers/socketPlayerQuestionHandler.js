@@ -12,30 +12,40 @@ const handleSendQuestion = async (socket, data, io) => {
         const targetPlayer = pairs.find((pair) => pair.judge_id === judgeId).player_id;
         const playerSockets = socketUserService.getUserSockets(parseInt(targetPlayer));
 
+        //Uutta kysymystä ei voi tallentaa, jos edelliseen ei ole tullut vastauksia. Jos tulee uusi kysymys ja aikaisempiin
+        //ei ole tullut vastauksia, niin anna herja ja pyydä virkistämään selain
+        const answerCountAndQuestionCount = await dbClient(
+            `api/getAnswerCountQuestionCountByGameIdJudgeId/${gameId}/${judgeId}`,
+        );
+        const data =
+            typeof answerCountAndQuestionCount === 'string'
+                ? JSON.parse(answerCountAndQuestionCount)
+                : answerCountAndQuestionCount;
+        const answerCount = data.answer_count;
+        const questionCount = data.question_count;
+        if (answerCount < questionCount) {
+            socket.emit('question-sent-error', {
+                error: 'judge_messenger_missing_answer',
+            });
+            return;
+        }
+
         //jos tuomarilla on 0 kysymystä, niin hän voi esittää uuden kysymyksen. Jos tuomarilla taas on
         //olemassa aikaisempi kysymys,
         //niin siihen pitäisi liittyä yksi arvio. Vasta arvion jälkeen voi esittää uuden kysymyksen
         const judgeGuessAndQuestionsCounts = await dbClient(
             `api/getJudgeGuessAndQuestionCounts/${gameId}/${judgeId}`,
         );
-        const counts = JSON.parse(judgeGuessAndQuestionsCounts);
+        const counts =
+            typeof judgeGuessAndQuestionsCounts === 'string'
+                ? JSON.parse(judgeGuessAndQuestionsCounts)
+                : judgeGuessAndQuestionsCounts;
         const guessCount = counts.guess_count;
         const judgeQuestionCount = counts.question_count;
         if (judgeQuestionCount !== 0 && guessCount !== judgeQuestionCount) {
-            emitError(io, socket, "You haven't judged earlier question, do refresh page", gameId);
-            return;
-        }
-
-        //Uutta kysymystä ei voi tallentaa, jos edelliseen ei ole tullut vastauksia. Jos tulee uusi kysymys ja aikaisempiin
-        //ei ole tullut vastauksia, niin anna herja ja pyydä virkistämään selain
-        const answerCountAndQuestionCount = await dbClient(
-            `api/getAnswerCountQuestionCountByGameIdJudgeId/${gameId}/${judgeId}`,
-        );
-        const data = JSON.parse(answerCountAndQuestionCount);
-        const answerCount = data.answer_count;
-        const questionCount = data.question_count;
-        if (answerCount + 1 < questionCount) {
-            emitError(io, socket, "You haven't answered earlier question, do refresh page", gameId);
+            socket.emit('question-sent-error', {
+                error: 'judge_messenger_missing_judge_guess',
+            });
             return;
         }
 
