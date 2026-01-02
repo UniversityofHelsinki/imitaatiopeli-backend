@@ -49,16 +49,19 @@ const handleSendQuestion = async (socket, data, io) => {
             return;
         }
 
+        if (playerSockets.length === 0) {
+            logger.warn(`No sockets found for judge ${judgeId}`);
+            socket.emit('question-sent-error', {
+                error: 'judge_messenger_missing_player',
+            });
+            return;
+        }
+
         const question = await dbApi.saveQuestion({
             judgeId,
             gameId,
             questionText,
         });
-
-        if (playerSockets.length === 0) {
-            logger.warn(`No sockets found for judge ${judgeId}`);
-            return;
-        }
 
         playerSockets.forEach((socketInfo) => {
             if (socketInfo.gameId === parseInt(gameId, 10)) {

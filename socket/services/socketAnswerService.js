@@ -4,6 +4,7 @@ const { sendAnswersToJudge } = require('../handlers/socketGameHandler');
 const azureService = require('../../services/azureService');
 const { getJudgeById } = require('../../api/dbApi');
 const dbService = require('../../services/dbService');
+const socketUserService = require('./socketUserService');
 
 const getAIPlayer = async () => {
     try {
@@ -180,6 +181,7 @@ const handleSendAnswer = async (socket, io, data) => {
         emitError(io, socket, validationError, gameId);
         return;
     }
+    const judgeId = await getGameJudge(playerId, gameId);
 
     //Yhteen kysymykseen voi liittyä vain kaksi vastausta (ai ja ihminen. Ei saa talentaa enempää vastauksia,
     //anna fronttiin herja, jossa pyydetään virkistämään selain)
@@ -190,6 +192,11 @@ const handleSendAnswer = async (socket, io, data) => {
         const count = answerCountPerQuestion.count;
         if (Number(count) > 0) {
             emitError(io, socket, 'judge_messenger_already_answered', gameId);
+            return;
+        }
+        const judgeSockets = socketUserService.getUserSockets(judgeId);
+        if (judgeSockets.length === 0) {
+            emitError(io, socket, 'judge_messenger_missing_judge', gameId);
             return;
         }
     } catch (error) {
@@ -210,7 +217,6 @@ const handleSendAnswer = async (socket, io, data) => {
         const gameConfiguration = await getGameConfigurationById(gameId);
         const aiPlayer = await getAIPlayer();
         const aiPlayerId = aiPlayer.player_id.toString();
-        const judgeId = await getGameJudge(playerId, gameId);
         const questionCount = await getQuestionCountByJudgeIdAndGameId(judgeId, gameId);
         const aIAnswer = await getAIAnswer(
             gameConfiguration,
