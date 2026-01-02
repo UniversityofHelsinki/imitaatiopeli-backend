@@ -1,13 +1,17 @@
-const { handleSendAnswer } = require('./socketAnswerService');
-const dbService = require('../../services/dbService');
-const azureService = require('../../services/azureService');
-const { getJudgeById } = require('../../api/dbApi');
-
 jest.mock('../../services/dbService');
 jest.mock('../../services/azureService');
 jest.mock('../../api/dbApi');
-jest.mock('../../logger');
 jest.mock('../handlers/socketGameHandler');
+jest.mock('../../logger');
+// Ensure judge sockets exist so the code proceeds to AI call
+jest.mock('./socketUserService', () => ({
+    getUserSockets: jest.fn(() => [{ socketId: 'judge-socket', gameId: 10 }]),
+}));
+
+const dbService = require('../../services/dbService');
+const azureService = require('../../services/azureService');
+const dbApi = require('../../api/dbApi');
+const { handleSendAnswer } = require('./socketAnswerService');
 
 describe('socketAnswerService', () => {
     let mockSocket;
@@ -23,7 +27,6 @@ describe('socketAnswerService', () => {
             to: jest.fn().mockReturnThis(),
             emit: jest.fn(),
         };
-        // Mock console.log to keep test output clean
         jest.spyOn(console, 'log').mockImplementation(() => {});
     });
 
@@ -67,7 +70,7 @@ describe('socketAnswerService', () => {
                 if (url === '/api/game/answer') return Promise.resolve({ answer_id: 500 });
                 return Promise.resolve({});
             });
-            getJudgeById.mockResolvedValue({ judge_id: 2 });
+            dbApi.getJudgeById.mockResolvedValue({ judge_id: 2 });
             azureService.getAIContextualAnswer.mockResolvedValue({ answer: 'AI response' });
 
             await handleSendAnswer(mockSocket, mockIo, validData);
@@ -117,6 +120,7 @@ describe('socketAnswerService', () => {
                 // Cause a failure during processing to trigger the generic error path
                 return Promise.reject(new Error('Database error'));
             });
+            dbApi.getJudgeById.mockResolvedValue({ judge_id: 2 });
 
             await handleSendAnswer(mockSocket, mockIo, validData);
 
