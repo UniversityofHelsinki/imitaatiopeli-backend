@@ -1,6 +1,7 @@
 const dbApi = require('../api/dbApi');
 const userApi = require('../api/userApi');
 const { dbClient } = require('../services/dbService');
+const dbService = require('../services/dbService');
 exports.player = (router) => {
     router.get('/hello', dbApi.getHelloFromDb);
     router.get('/getPlayerById/:playerId', dbApi.getPlayerById);
@@ -77,5 +78,25 @@ exports.player = (router) => {
             res.status(200).json(response);
         }
         res.status(500).end();
+    });
+
+    router.get('/player/status', async (req, res) => {
+        const player = await dbService.getPlayerById(req.headers['x-player-id']);
+        if (!player) {
+            return res.status(404).json({ error: 'Player not found' });
+        }
+
+        const playerStatus = await dbService.getPlayerStatus(player.player_id, player.gameId);
+        return res.json(playerStatus).end();
+    });
+
+    router.get('/judge/ready-for-final-review', async (req, res) => {
+        const player = await dbService.getPlayerById(req.headers['x-player-id']);
+        if (!player) {
+            return res.status(404).json({ error: 'Player not found' });
+        }
+
+        const response = await dbService.playerReadyForFinalReview(player.player_id, player.gameId);
+        return res.json(response).end();
     });
 };
