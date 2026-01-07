@@ -122,8 +122,13 @@ exports.getAllPromptTemplates = async () => {
     return await dbClient(url);
 };
 
-exports.getPlayerStatus = async (playerId, gameId) => {
-    const url = `/api/player/${playerId}/${gameId}/status`;
+exports.getJudgeStatus = async (playerId, gameId) => {
+    const url = `/api/judge/${playerId}/${gameId}/status`;
+    return await dbClient(url);
+};
+
+exports.getAnswererStatus = async (playerId, gameId) => {
+    const url = `/api/answerer/${playerId}/${gameId}/status`;
     return await dbClient(url);
 };
 

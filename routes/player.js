@@ -80,13 +80,23 @@ exports.player = (router) => {
         res.status(500).end();
     });
 
-    router.get('/player/status', async (req, res) => {
+    router.get('/judge/status', async (req, res) => {
         const player = await dbService.getPlayerById(req.headers['x-player-id']);
         if (!player) {
             return res.status(404).json({ error: 'Player not found' });
         }
 
-        const playerStatus = await dbService.getPlayerStatus(player.player_id, player.gameId);
+        const playerStatus = await dbService.getJudgeStatus(player.player_id, player.gameId);
+        return res.json(playerStatus).end();
+    });
+
+    router.get('/answerer/status', async (req, res) => {
+        const player = await dbService.getPlayerById(req.headers['x-player-id']);
+        if (!player) {
+            return res.status(404).json({ error: 'Player not found' });
+        }
+
+        const playerStatus = await dbService.getAnswererStatus(player.player_id, player.gameId);
         return res.json(playerStatus).end();
     });
 
