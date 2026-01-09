@@ -69,12 +69,12 @@ const shibbolethAuthentication = (app, passport) => {
     app.use(async function (req, res, next) {
         if (
             req.path === '/public/games/join' ||
+            req.path === '/public/hello' ||
             req.path.match(/^\/public\/games\/[^/]+$/) ||
             req.path.match(/^\/public\/games\/[^/]+\/players$/)
         ) {
             return next();
         }
-
         if (req.path.startsWith('/public')) {
             const validationError = await validatePlayerAuthentication(req);
             if (validationError) {
