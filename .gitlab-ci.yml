@@ -180,9 +180,48 @@ deploy_prod:
         name: prod
     only:
         - prod
+    when: manual
     except:
         # Skip deploy when scheduled npm audit and outdated scans are executed.
         - schedules
+    script:
+        # set home path for openshift 1001 user
+        - export HOME=/home/1001
+        # before any action, I connect to the OpenShift server with the appropriate credentials
+        - oc login https://$OPENSHIFT_ADDR_PROD:$OPENSHIFT_PORT --token=$OPENSHIFT_TOKEN_PROD
+        - oc project imitaatiopeli
+        # create application if it does not exist
+        - |
+            if oc get deploy/imitaatiopeli-backend-prod; then 
+              echo "The application already exists."
+            else 
+              oc new-app . --name=imitaatiopeli-backend-prod --strategy=docker
+              echo "The application has been created."
+            fi
+        # add secrets here
+        # list environment variables here
+        - oc set env deploy/imitaatiopeli-backend-prod ALLOWED_ORIGIN=$ALLOWED_ORIGIN_PROD
+        - oc set env deploy/imitaatiopeli-backend-prod OPENSHIFT_NODEJS_IP=$OPENSHIFT_NODEJS_IP
+        - oc set env deploy/imitaatiopeli-backend-prod OPENSHIFT_NODEJS_PORT=$OPENSHIFT_NODEJS_PORT
+        - oc set env deploy/imitaatiopeli-backend-prod DB_HOST=$DB_HOST_PROD
+        - oc set env deploy/imitaatiopeli-backend-prod AZURE_SERVICE_HOST=$AZURE_SERVICE_HOST_PROD
+        - oc set env deploy/imitaatiopeli-backend-prod TZ="Europe/Helsinki"
+        # start build process in OpenShift
+        - oc start-build imitaatiopeli-backend-prod --from-dir=. --follow
+        # patch openshift buildConfig file
+        - oc patch bc/imitaatiopeli-backend-prod --patch '{"spec":{"successfulBuildsHistoryLimit":1}}'
+        - oc patch bc/imitaatiopeli-backend-prod --patch '{"spec":{"failedBuildsHistoryLimit":1}}'
+
+deploy_prod_pediodically:
+    stage: deploy
+    tags:
+        - ohtu-build-4
+    environment:
+        name: prod
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "prod"'
+          when: always
+        - when: never
     script:
         # set home path for openshift 1001 user
         - export HOME=/home/1001
