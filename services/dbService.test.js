@@ -9,6 +9,13 @@ describe('dbService', () => {
         process.env.DB_HOST = 'http://db-host';
         dbServiceWithEnv = require('./dbService');
         global.fetch = jest.fn();
+        const { logger } = require('../logger');
+        jest.spyOn(logger, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        const { logger } = require('../logger');
+        logger.error.mockRestore();
     });
 
     afterAll(() => {
@@ -187,6 +194,31 @@ describe('dbService', () => {
             expect(global.fetch).toHaveBeenCalledWith('http://db-host/api/promptTemplates', {
                 method: 'GET',
             });
+        });
+
+        it('getJudgeStatus', async () => {
+            mockJsonResponse({});
+            await dbServiceWithEnv.getJudgeStatus('p1', 'g1');
+            expect(global.fetch).toHaveBeenCalledWith('http://db-host/api/judge/p1/g1/status', {
+                method: 'GET',
+            });
+        });
+
+        it('getAnswererStatus', async () => {
+            mockJsonResponse({});
+            await dbServiceWithEnv.getAnswererStatus('p1', 'g1');
+            expect(global.fetch).toHaveBeenCalledWith('http://db-host/api/answerer/p1/g1/status', {
+                method: 'GET',
+            });
+        });
+
+        it('playerReadyForFinalReview', async () => {
+            mockJsonResponse({});
+            await dbServiceWithEnv.playerReadyForFinalReview('p1', 'g1');
+            expect(global.fetch).toHaveBeenCalledWith(
+                'http://db-host/api/player/p1/g1/ready-for-final-review',
+                { method: 'GET' },
+            );
         });
     });
 

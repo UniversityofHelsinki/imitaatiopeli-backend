@@ -44,7 +44,6 @@ const getAIAnswer = async (
 
         return await azureService.getAIContextualAnswer(
             config.modifiedPrompt,
-            config.temperature,
             config.languageModelId,
             playerAnswer,
             messageBody,
@@ -60,7 +59,6 @@ const extractConfiguration = async (gameConfiguration, playerAnswer) => {
     const { configuration, languageModel } = gameConfiguration;
     const {
         ai_prompt: prompt,
-        model_temperature: temperature,
         language_model: languageModelId,
         language_used: languageCode,
     } = configuration;
@@ -73,7 +71,6 @@ const extractConfiguration = async (gameConfiguration, playerAnswer) => {
 
     return {
         modifiedPrompt,
-        temperature,
         languageModelId,
         url: languageModel.url,
     };

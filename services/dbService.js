@@ -14,7 +14,7 @@ const dbClient = async (path, options = { method: 'GET' }) => {
             return await response.json();
         }
     } catch (error) {
-        console.error(error.message);
+        logger.error(error.message);
         throw error;
     }
 };

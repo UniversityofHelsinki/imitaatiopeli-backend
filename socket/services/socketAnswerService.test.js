@@ -56,7 +56,6 @@ describe('socketAnswerService', () => {
                     return Promise.resolve({
                         configuration: {
                             ai_prompt: 'System prompt',
-                            model_temperature: 0.7,
                             language_model: 1,
                             language_used: 'en',
                         },

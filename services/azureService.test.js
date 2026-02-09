@@ -28,7 +28,6 @@ describe('azureService', () => {
 
             const result = await azureService.getAIContextualAnswer(
                 'prompt',
-                0.7,
                 'model1',
                 'player answer',
                 'message body',
@@ -42,7 +41,6 @@ describe('azureService', () => {
                     body: JSON.stringify({
                         messageBody: 'message body',
                         prompt: 'prompt',
-                        temperature: 0.7,
                         languageModelUrl: 'http://model-url',
                     }),
                 }),
@@ -52,14 +50,8 @@ describe('azureService', () => {
 
         it('should throw error if required parameters are missing', async () => {
             await expect(
-                azureService.getAIContextualAnswer(
-                    null,
-                    0.7,
-                    'model1',
-                    'player answer',
-                    'message body',
-                ),
-            ).rejects.toThrow('Prompt, message body and temperature are required');
+                azureService.getAIContextualAnswer(null, 'model1', 'player answer', 'message body'),
+            ).rejects.toThrow('Prompt and message body are required');
         });
     });
 
@@ -74,7 +66,6 @@ describe('azureService', () => {
 
             const result = await azureService.getAIAnswer(
                 'prompt',
-                0.7,
                 'model1',
                 'player answer',
                 'question',
@@ -88,7 +79,6 @@ describe('azureService', () => {
                     body: JSON.stringify({
                         question: 'question',
                         prompt: 'prompt',
-                        temperature: 0.7,
                         languageModelUrl: 'http://model-url',
                     }),
                 }),
@@ -103,7 +93,6 @@ describe('azureService', () => {
                 body: {
                     prompt: 'test prompt',
                     question: 'test question',
-                    temperature: 0.5,
                     languageModelId: 'model123',
                 },
             };
@@ -126,7 +115,6 @@ describe('azureService', () => {
                     body: JSON.stringify({
                         question: 'test question',
                         prompt: 'test prompt',
-                        temperature: 0.5,
                         languageModelUrl: 'http://model-url',
                     }),
                 }),
