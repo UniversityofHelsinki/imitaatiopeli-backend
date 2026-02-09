@@ -22,7 +22,6 @@ const EXCEL_INFO_COLUMNS = [
     { header: 'Theme Description', key: 'theme_description', width: 10 },
     { header: 'AI Prompt', key: 'ai_prompt', width: 10 },
     { header: 'Language Model', key: 'language_model', width: 10 },
-    { header: 'Model Temperature', key: 'model_temperature', width: 10 },
     { header: 'Is Research Game', key: 'is_research_game', width: 10 },
     { header: 'Research Description', key: 'research_description', width: 10 },
     { header: 'Instructions For Players', key: 'instructions_for_players', width: 50 },

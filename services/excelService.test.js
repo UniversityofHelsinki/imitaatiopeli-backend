@@ -53,7 +53,6 @@ describe('excelService', () => {
                     game_name: 'Test Game',
                     theme_description: 'Test Theme',
                     ai_prompt: 'System Prompt',
-                    model_temperature: 0.7,
                     is_research_game: true,
                     research_description: 'Research Desc',
                     instructions_for_players: 'Instructions',

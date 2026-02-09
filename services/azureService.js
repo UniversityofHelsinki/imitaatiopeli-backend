@@ -24,14 +24,13 @@ const azureClient = async (path, options = { method: 'GET' }) => {
 
 exports.getAIContextualAnswer = async (
     prompt,
-    temperature,
     languageModelId,
     playerAnswer,
     messageBody,
     languageModelUrl,
 ) => {
     if (!prompt || !messageBody) {
-        throw new Error('Prompt, message body and temperature are required');
+        throw new Error('Prompt and message body are required');
     }
 
     if (!playerAnswer) {
@@ -48,20 +47,13 @@ exports.getAIContextualAnswer = async (
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messageBody, prompt, temperature, languageModelUrl }),
+        body: JSON.stringify({ messageBody, prompt, languageModelUrl }),
     });
 };
 
-exports.getAIAnswer = async (
-    prompt,
-    temperature,
-    languageModelId,
-    playerAnswer,
-    question,
-    languageModelUrl,
-) => {
+exports.getAIAnswer = async (prompt, languageModelId, playerAnswer, question, languageModelUrl) => {
     if (!prompt || !question) {
-        throw new Error('Prompt, question and temperature are required');
+        throw new Error('Prompt and question are required');
     }
 
     if (!playerAnswer) {
@@ -78,15 +70,15 @@ exports.getAIAnswer = async (
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question, prompt, temperature, languageModelUrl }),
+        body: JSON.stringify({ question, prompt, languageModelUrl }),
     });
 };
 
 exports.testAIPrompt = async (req) => {
-    const { prompt, question, temperature, languageModelId } = req.body;
+    const { prompt, question, languageModelId } = req.body;
 
     if (!prompt || !question) {
-        throw new Error('Prompt, question and temperature are required');
+        throw new Error('Prompt, question are required');
     }
 
     if (!languageModelId) {
@@ -101,6 +93,6 @@ exports.testAIPrompt = async (req) => {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question, prompt, temperature, languageModelUrl }),
+        body: JSON.stringify({ question, prompt, languageModelUrl }),
     });
 };

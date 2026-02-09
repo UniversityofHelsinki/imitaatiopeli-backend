@@ -47,7 +47,6 @@ const createWorkbookFromGameData = (data) => {
             ' , ' +
             data.promptSuffixTemplate?.[0]?.suffix_template,
         language_model: data.languageModel?.name,
-        model_temperature: data.gameConfiguration?.model_temperature,
         is_research_game: data.gameConfiguration?.is_research_game,
         research_description: data.gameConfiguration?.research_description,
         instructions_for_players: data.gameConfiguration?.instructions_for_players,
