@@ -5,16 +5,34 @@ const dbClient = async (path, options = { method: 'GET' }) => {
     try {
         const url = `${dbHost}${path.indexOf('/') !== 0 ? `/${path}` : path}`;
         const response = await fetch(url, options);
+        console.log('*****response**' + response);
+        const contentType = response.headers.get('Content-Type') || '';
+        const isJson = contentType.startsWith('application/json');
+
+        // Parse body eagerly so we can surface meaningful errors
+        const parsedBody = isJson
+            ? await response.json().catch(() => null)
+            : await response.text().catch(() => null);
+
         if (!response.ok) {
-            throw new Error(`Unexpected status code ${response.status} from ${url}`);
+            // Construct an error that carries HTTP status and body from upstream
+            const messageFromBody =
+                isJson &&
+                parsedBody &&
+                (parsedBody.message || parsedBody.error || parsedBody.detail);
+            const err = new Error(
+                messageFromBody || `Upstream error ${response.status} from ${url}`,
+            );
+            err.status = response.status;
+            err.body = parsedBody;
+            throw err;
         }
 
-        const contentType = response.headers.get('Content-Type');
-        if (contentType?.startsWith('application/json')) {
-            return await response.json();
-        }
+        return isJson ? parsedBody : parsedBody;
     } catch (error) {
-        logger.error(error.message);
+        // Log with status if available
+        const statusInfo = error.status ? ` (status ${error.status})` : '';
+        logger.error(`${error.message}${statusInfo}`);
         throw error;
     }
 };
