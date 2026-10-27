@@ -198,4 +198,16 @@ exports.admin = (router) => {
     });
 
     router.get('/promptTemplates', dbApi.getAllPromptTemplates);
+
+    router.put('/games/:id/activate', async (req, res) => {
+        const { id } = req.params;
+        try {
+            await dbClient(`/api/games/${id}/activate`, {
+                method: 'put',
+            });
+            return res.status(200).end();
+        } catch (error) {
+            return res.status(500).json(error.message);
+        }
+    });
 };

@@ -5,7 +5,6 @@ const dbClient = async (path, options = { method: 'GET' }) => {
     try {
         const url = `${dbHost}${path.indexOf('/') !== 0 ? `/${path}` : path}`;
         const response = await fetch(url, options);
-        console.log('*****response**' + response);
         const contentType = response.headers.get('Content-Type') || '';
         const isJson = contentType.startsWith('application/json');
 
