@@ -42,5 +42,9 @@
         "prettier": "^3.3.3",
         "pretty-quick": "^4.0.0",
         "simple-git-hooks": "^2.11.1"
+    },
+    "allowScripts": {
+        "simple-git-hooks@2.14.0": true,
+        "fsevents@2.3.3": true
     }
 }

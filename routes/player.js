@@ -16,6 +16,7 @@ exports.player = (router) => {
         if (response) {
             res.json(response);
         }
+
         res.status(500).end();
     });
 
@@ -37,18 +38,23 @@ exports.player = (router) => {
 
     router.post('/games/join', async (req, res) => {
         const { body } = req;
-
-        const response = await dbClient(`/api/game/join`, {
-            method: 'POST',
-            body: JSON.stringify(body),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        if (response) {
-            res.status(200).json(response);
+        try {
+            const response = await dbClient(`/api/game/join`, {
+                method: 'POST',
+                body: JSON.stringify(body),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (response) {
+                return res.status(200).json(response);
+            }
+            return res.status(204).end();
+        } catch (error) {
+            const status = error.status || 500;
+            const payload = error.body || { error: error.message };
+            return res.status(status).json(payload);
         }
-        res.status(500).end();
     });
 
     router.get('/games/:id/player/:playerId/unansweredQuestion', async (req, res) => {

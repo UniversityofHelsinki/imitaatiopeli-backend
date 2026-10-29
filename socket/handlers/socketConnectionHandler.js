@@ -7,6 +7,7 @@ const handleJoinGame = async (socket, data) => {
     if (!userId || !gameId || !nickname || !session_token) {
         return;
     }
+
     console.log('Join game data received:', {
         socketId: socket.id,
         ...data,

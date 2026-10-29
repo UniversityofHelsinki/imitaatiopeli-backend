@@ -45,9 +45,11 @@ describe('dbService', () => {
                 ok: false,
                 status: 500,
                 url: 'http://db-host/test-path',
+                headers: { get: () => 'text/plain' },
+                text: jest.fn().mockResolvedValue('Internal error'),
             });
             await expect(dbServiceWithEnv.dbClient('/test-path')).rejects.toThrow(
-                'Unexpected status code 500 from http://db-host/test-path',
+                'Upstream error 500 from http://db-host/test-path',
             );
         });
     });
